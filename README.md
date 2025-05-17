@@ -13,7 +13,7 @@ You can double click on a peer to open its chat window (spawned
 as a separate process), your peer needs to do the same right
 now as there is no signaling yet.
 
-Messages are limited to 512 byte messages.
+Messages are limited to 512 bytes each.
 Messages are resent if a peer does not ACK a message after 5 seconds.
 
 ## Building
