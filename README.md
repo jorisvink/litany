@@ -9,7 +9,7 @@ The basics work, but this is very much WIP.
 As it stands right now you can see the list of all peers that
 are online due to the fact that it uses a liturgy underneath.
 
-You can double client a peer to open its chat window (spawned
+You can double click on a peer to open its chat window (spawned
 as a separate process), your peer needs to do the same right
 now as there is no signaling yet.
 
