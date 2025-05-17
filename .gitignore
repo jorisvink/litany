@@ -1,0 +1,6 @@
+obj
+.qmake.stash
+litany
+Makefile
+*.o
+build

@@ -1,0 +1,27 @@
+QT		+= widgets network
+
+TEMPLATE	= app
+TARGET		= litany
+OBJECTS_DIR	= build/obj
+MOC_DIR		= build/moc
+
+INCLUDEPATH	+=	include /usr/local/include
+LIBPATH		+=	/usr/local/lib /opt/homebrew/Cellar/libsodium/1.0.20/lib
+LIBS		+=	-lkyrka -lsodium
+
+HEADERS		+=	include/litany_qt.h include/litany.h
+
+SOURCES		+=	src/main.cc \
+			src/tunnel.cc \
+			src/liturgy.cc \
+			src/chat_win.cc \
+			src/litany_win.cc \
+			src/msg.c
+
+QMAKE_CXXFLAGS	+=	-g
+
+sanitize {
+	CONFIG+= sanitizer sanitize_address sanitize_undefined
+}
+
+requires(qtConfig(udpsocket))
