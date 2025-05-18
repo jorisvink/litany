@@ -85,6 +85,9 @@ LitanyWindow::LitanyWindow(QJsonObject *config)
 	discovery = new Liturgy(config);
 }
 
+/*
+ * Cleanup resources owned by our litany window.
+ */
 LitanyWindow::~LitanyWindow(void)
 {
 	delete discovery;
@@ -121,6 +124,10 @@ LitanyWindow::peer_set_state(u_int8_t id, int is_online)
 	}
 }
 
+/*
+ * Fork+exec() the litany binary in chat mode so it brings up the
+ * chat window for the desired peer.
+ */
 void
 LitanyWindow::chat_open(QListWidgetItem *item)
 {
@@ -155,6 +162,10 @@ LitanyWindow::chat_open(QListWidgetItem *item)
 	proc->start();
 }
 
+/*
+ * XXX
+ * A chat process has exited, we should do something here, maybe?
+ */
 void
 LitanyWindow::chat_exit(int exit_code)
 {
