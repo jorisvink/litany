@@ -58,6 +58,8 @@ LitanyPeer::show_notification(int onoff)
 			}
 			setForeground(Qt::yellow);
 			setText(QString("Peer %1 (chat pending)").arg(peer_id));
+			if (litany->isActiveWindow() == false)
+				app->alert(litany);
 		} else {
 			setForeground(Qt::gray);
 			setText(QString("Peer %1").arg(peer_id));
@@ -75,10 +77,8 @@ LitanyPeer::chat_open(void)
 	QStringList		nargs;
 	const QStringList	args(QApplication::instance()->arguments());
 
-	if (proc != NULL) {
-		printf("XXX: proc already running, need to raise it\n");
+	if (proc != NULL)
 		return;
-	}
 
 	if (config_file != NULL) {
 		nargs.append("-c");
@@ -96,8 +96,6 @@ LitanyPeer::chat_open(void)
 
 	connect(proc, &QProcess::finished, this, &LitanyPeer::chat_close);
 	proc->start();
-
-	printf("chat window for %u opened\n", peer_id);
 }
 
 /*
@@ -109,6 +107,7 @@ LitanyPeer::chat_close(int exit_status)
 	struct timespec		ts;
 
 	PRECOND(proc != NULL);
+	(void)exit_status;
 
 	delete proc;
 	proc = NULL;
@@ -117,7 +116,6 @@ LitanyPeer::chat_close(int exit_status)
 	last_notification = ts.tv_sec;
 
 	litany->signaling_state(peer_id, 0);
-	printf("chat window for %u closed (%d)\n", peer_id, exit_status);
 }
 
 /*

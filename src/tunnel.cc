@@ -246,8 +246,6 @@ Tunnel::send_ack(u_int64_t id)
 
 	memset(&data, 0, sizeof(data));
 
-	printf("acking %lu\n", id);
-
 	data.id = htobe64(id);
 	data.type = LITANY_MESSAGE_TYPE_ACK;
 
@@ -309,14 +307,11 @@ Tunnel::recv_ack(u_int64_t id)
 
 	LIST_FOREACH(msg, &msgs, list) {
 		if (msg->id == id) {
-			printf("%lu ack'd!\n", msg->id);
 			LIST_REMOVE(msg, list);
 			free(msg);
 			return;
 		}
 	}
-
-	printf("message not found for %lu ack\n", id);
 }
 
 /*
