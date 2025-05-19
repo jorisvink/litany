@@ -52,7 +52,8 @@ LitanyPeer::show_notification(int onoff)
 		if (onoff) {
 			(void)clock_gettime(CLOCK_MONOTONIC, &ts);
 			if ((ts.tv_sec - last_notification) >= 5) {
-				litany->alert.play();
+				if (litany->alert.isPlaying() == false)
+					litany->alert.play();
 				last_notification = ts.tv_sec;
 			}
 			setForeground(Qt::yellow);

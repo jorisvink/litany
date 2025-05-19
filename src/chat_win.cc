@@ -131,7 +131,8 @@ LitanyChat::message_show(const char *msg, u_int64_t id, Qt::GlobalColor color)
 		}
 
 		if (this->isActiveWindow() == false) {
-			message.play();
+			if (message.isPlaying() == false)
+				message.play();
 			app->alert(this);
 		}
 	}
