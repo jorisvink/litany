@@ -33,6 +33,7 @@ LitanyPeer::LitanyPeer(LitanyWindow *parent, u_int8_t id)
 	peer_id = id;
 	online = false;
 	litany = parent;
+	last_notification = 0;
 }
 
 /*
