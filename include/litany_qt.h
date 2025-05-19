@@ -30,7 +30,6 @@
 #include <QProcess>
 #include <QListView>
 #include <QJsonObject>
-#include <QSoundEffect>
 #include <QStandardItemModel>
 
 #include <libkyrka/libkyrka.h>
@@ -148,9 +147,6 @@ private slots:
 	void		chat_close(int);
 
 private:
-	/* The last time we played the notification sound. */
-	time_t		last_notification;
-
 	/* The chat window its process, if running. */
 	QProcess	*proc;
 
@@ -175,8 +171,6 @@ public:
 	void peer_set_state(u_int8_t, int);
 	void peer_set_notification(u_int8_t, int);
 
-	/* Sound effects for different notifications. */
-	QSoundEffect		alert;
 private:
 	/*
 	 * The UI online and offline lists and the LitanyPeers that
@@ -212,9 +206,6 @@ private:
 	QListView			*view;
 	QLineEdit			*input;
 	QStandardItemModel		*model;
-
-	/* Different sound effects. */
-	QSoundEffect			message;
 
 	/* * The libkyrka tunnel object handling our encrypted transport. */
 	Tunnel				*tunnel;

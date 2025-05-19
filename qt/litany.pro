@@ -1,4 +1,4 @@
-QT		+= widgets network multimedia
+QT		+= widgets network
 
 TEMPLATE	= app
 TARGET		= litany
@@ -23,10 +23,7 @@ QMAKE_CXXFLAGS	+=	-g
 litany.path	= /usr/local/bin
 litany.files	= litany
 
-sound.path	= /usr/local/share/litany/sounds
-sound.files	= res/incoming.wav res/pending.wav
-
-INSTALLS	+= litany sound
+INSTALLS	+= litany
 
 sanitize {
 	CONFIG+= sanitizer sanitize_address sanitize_undefined

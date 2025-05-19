@@ -33,7 +33,6 @@ LitanyPeer::LitanyPeer(LitanyWindow *parent, u_int8_t id)
 	peer_id = id;
 	online = false;
 	litany = parent;
-	last_notification = 0;
 }
 
 /*
@@ -42,8 +41,6 @@ LitanyPeer::LitanyPeer(LitanyWindow *parent, u_int8_t id)
 void
 LitanyPeer::show_notification(int onoff)
 {
-	struct timespec		ts;
-
 	PRECOND(onoff == 0 || onoff == 1);
 
 	if (proc) {
@@ -51,16 +48,9 @@ LitanyPeer::show_notification(int onoff)
 		setText(QString("Peer %1 (chat open)").arg(peer_id));
 	} else {
 		if (onoff) {
-			(void)clock_gettime(CLOCK_MONOTONIC, &ts);
-			if ((ts.tv_sec - last_notification) >= 5) {
-				if (litany->alert.isPlaying() == false)
-					litany->alert.play();
-				last_notification = ts.tv_sec;
-			}
 			setForeground(Qt::yellow);
 			setText(QString("Peer %1 (chat pending)").arg(peer_id));
-			if (litany->isActiveWindow() == false)
-				app->alert(litany);
+			app->alert(litany);
 		} else {
 			setForeground(Qt::gray);
 			setText(QString("Peer %1").arg(peer_id));
@@ -105,16 +95,11 @@ LitanyPeer::chat_open(void)
 void
 LitanyPeer::chat_close(int exit_status)
 {
-	struct timespec		ts;
-
 	PRECOND(proc != NULL);
 	(void)exit_status;
 
 	delete proc;
 	proc = NULL;
-
-	(void)clock_gettime(CLOCK_MONOTONIC, &ts);
-	last_notification = ts.tv_sec;
 
 	litany->signaling_state(peer_id, 0);
 }
@@ -171,9 +156,6 @@ LitanyWindow::LitanyWindow(QJsonObject *config)
 	label->setStyleSheet("color: white");
 	layout->addWidget(label);
 	layout->addWidget(offline);
-
-	alert.setSource(QUrl::fromLocalFile(
-	    QString("%1/sounds/incoming.wav").arg(LITANY_SHARE_DIR)));
 
 	for (int i = 1; i < 256; i++) {
 		peers[i] = new LitanyPeer(this, i);
