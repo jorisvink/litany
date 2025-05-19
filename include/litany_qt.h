@@ -79,23 +79,36 @@ private:
 	/* List of non-ack'd messages. */
 	struct litany_msg_list	msgs;
 };
+
 /*
- * The liturgy, responsible for discovering what peers are available
- * and updates the list inside of the LitanyWindow.
+ * The liturgy, which can be run in either one of two modes:
+ *	1) discovery mode for discovering what peers are available and
+ *	   updates the list inside of the LitanyWindow.
+ *	2) signaling mode to discover who is trying to talk to us.
  */
+#define LITURGY_MODE_DISCOVERY		1
+#define LITURGY_MODE_SIGNAL		2
+
 class Liturgy: public QObject {
 	Q_OBJECT
 
 public:
-	Liturgy(QJsonObject *);
+	Liturgy(QObject *, QJsonObject *, int);
 	~Liturgy(void);
+
+	void signaling_state(u_int8_t, int);
 	void socket_send(const void *, size_t);
+
+	void		*litany;
+	int		runmode;
 
 private slots:
 	void packet_read(void);
 	void liturgy_send(void);
 
 private:
+	u_int8_t	signaling[KYRKA_PEERS_PER_FLOCK];
+
 	quint16		port;
 	QUdpSocket	socket;
 	QHostAddress	address;
@@ -104,15 +117,33 @@ private:
 	KYRKA		*kyrka;
 };
 
+class LitanyWindow;
+
 /*
  * An entry in the online or offline lists in the LitanyWindow,
- * together with the identifier for the peer.
+ * together with the identifier for the peer and an attached
+ * chat process (if any).
  */
-class LitanyPeer: public QListWidgetItem {
+class LitanyPeer: public QObject, public QListWidgetItem {
+	Q_OBJECT
+
 public:
-	LitanyPeer(u_int8_t);
+	LitanyPeer(LitanyWindow *, u_int8_t);
+	~LitanyPeer(void);
 
 	u_int8_t	peer_id;
+	void		chat_open(void);
+	void		show_notification(int);
+
+private slots:
+	void		chat_close(int);
+
+private:
+	/* The chat window its process, if running. */
+	QProcess	*proc;
+
+	/* The litany window under which we reside. */
+	LitanyWindow	*litany;
 };
 
 /*
@@ -126,20 +157,25 @@ public:
 	LitanyWindow(QJsonObject *);
 	~LitanyWindow(void);
 
-	void chat_exit(int);
 	void chat_open(QListWidgetItem *);
+	void signaling_state(u_int8_t, int);
+
 	void peer_set_state(u_int8_t, int);
+	void peer_set_notification(u_int8_t, int);
 
 private:
+	/*
+	 * The UI online and offline lists and the LitanyPeers that
+	 * populate said lists.
+	 */
 	QListWidget		*online;
 	QListWidget		*offline;
-
-	Liturgy			*discovery;
 	LitanyPeer		*peers[KYRKA_PEERS_PER_FLOCK + 1];
-};
 
-/* src/main.cc */
-extern LitanyWindow	*litany;
+	/* The two liturgies we always have running. */
+	Liturgy			*discovery;
+	Liturgy			*signaling;
+};
 
 /*
  * A litany chat, a new window that maintains a tunnel to the peer
@@ -158,8 +194,6 @@ private slots:
 	void create_message(void);
 
 private:
-	void flush_messages(void);
-
 	/* GUI stuff. */
 	QListView			*view;
 	QLineEdit			*input;

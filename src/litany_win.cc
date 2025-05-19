@@ -26,9 +26,99 @@
  * QListWidget. This exists so we can obtain the peer id in a way
  * that made sense to me.
  */
-LitanyPeer::LitanyPeer(u_int8_t id)
+LitanyPeer::LitanyPeer(LitanyWindow *parent, u_int8_t id)
 {
+	proc = NULL;
 	peer_id = id;
+	litany = parent;
+}
+
+/*
+ * Enable or disable the notification when another peer is trying to reach us.
+ */
+void
+LitanyPeer::show_notification(int onoff)
+{
+	PRECOND(onoff == 0 || onoff == 1);
+
+	if (proc) {
+		setForeground(Qt::green);
+		setText(QString("Peer %1 (chat open)").arg(peer_id));
+	} else {
+		if (onoff) {
+			setForeground(Qt::yellow);
+			setText(QString("Peer %1 (chat pending)").arg(peer_id));
+		} else {
+			setForeground(Qt::gray);
+			setText(QString("Peer %1").arg(peer_id));
+		}
+	}
+}
+
+/*
+ * Launch the chat window for this peer.
+ */
+void
+LitanyPeer::chat_open(void)
+{
+	QString			id;
+	QStringList		nargs;
+	const QStringList	args(QApplication::instance()->arguments());
+
+	if (proc != NULL) {
+		printf("XXX: proc already running, need to raise it\n");
+		return;
+	}
+
+	if (config_file != NULL) {
+		nargs.append("-c");
+		nargs.append(QString("%1").arg(config_file));
+	}
+
+	id = QString("0x%1").arg(peer_id, 2, 16, QLatin1Char('0'));
+	nargs.append("chat");
+	nargs.append(id);
+
+	proc = new QProcess(this);
+
+	proc->setProgram(args.at(0));
+	proc->setArguments(nargs);
+
+	connect(proc, &QProcess::finished, this, &LitanyPeer::chat_close);
+	proc->start();
+
+	printf("peer %p\n", (void *)this);
+	printf("proc %p\n", (void *)proc);
+	printf("chat window for %u opened\n", peer_id);
+}
+
+/*
+ * The chat window for this peer has closed, turn off signaling to the peer.
+ */
+void
+LitanyPeer::chat_close(int exit_status)
+{
+	printf("peer %p\n", (void *)this);
+	printf("proc %p\n", (void *)proc);
+	PRECOND(proc != NULL);
+
+	delete proc;
+	proc = NULL;
+
+	litany->signaling_state(peer_id, 0);
+	printf("chat window for %u closed (%d)\n", peer_id, exit_status);
+}
+
+/*
+ * Cleanup any LitanyPeer resources, we kill the chat process here
+ * if its still running.
+ */
+LitanyPeer::~LitanyPeer(void)
+{
+	if (proc != NULL)
+		proc->close();
+
+	delete proc;
 }
 
 /*
@@ -73,7 +163,7 @@ LitanyWindow::LitanyWindow(QJsonObject *config)
 	layout->addWidget(offline);
 
 	for (int i = 1; i < 256; i++) {
-		peers[i] = new LitanyPeer(i);
+		peers[i] = new LitanyPeer(this, i);
 		peers[i]->setText(QString("Peer %1").arg(i));
 		offline->addItem(peers[i]);
 	}
@@ -82,7 +172,9 @@ LitanyWindow::LitanyWindow(QJsonObject *config)
 	    &QListWidget::itemDoubleClicked, this, &LitanyWindow::chat_open);
 
 	setCentralWidget(widget);
-	discovery = new Liturgy(config);
+
+	signaling = new Liturgy(this, config, LITURGY_MODE_SIGNAL);
+	discovery = new Liturgy(this, config, LITURGY_MODE_DISCOVERY);
 }
 
 /*
@@ -91,6 +183,17 @@ LitanyWindow::LitanyWindow(QJsonObject *config)
 LitanyWindow::~LitanyWindow(void)
 {
 	delete discovery;
+	delete signaling;
+}
+
+/*
+ * Called from a LitanyPeer, we forward the signaling state to our
+ * underlying signaling liturgy.
+ */
+void
+LitanyWindow::signaling_state(u_int8_t peer, int onoff)
+{
+	signaling->signaling_state(peer, onoff);
 }
 
 /*
@@ -100,74 +203,46 @@ LitanyWindow::~LitanyWindow(void)
 void
 LitanyWindow::peer_set_state(u_int8_t id, int is_online)
 {
-	QString				str;
-	QListWidgetItem			*item;
-	QList<QListWidgetItem *>	items;
-
 	PRECOND(id > 0);
 	PRECOND(is_online == 1 || is_online == 0);
 
-	str = QString("Peer %1").arg(id);
-
 	if (is_online) {
-		items = offline->findItems(str, Qt::MatchExactly);
-		for (auto *it: items) {
-			item = offline->takeItem(offline->row(it));
-			online->insertItem(id - 1, item);
-		}
+		offline->takeItem(offline->row(peers[id]));
+		online->insertItem(id - 1, peers[id]);
 	} else {
-		items = online->findItems(str, Qt::MatchExactly);
-		for (auto *it: items) {
-			item = online->takeItem(online->row(it));
-			offline->insertItem(id - 1, item);
-		}
+		online->takeItem(offline->row(peers[id]));
+		offline->insertItem(id - 1, peers[id]);
 	}
 }
 
 /*
- * Fork+exec() the litany binary in chat mode so it brings up the
- * chat window for the desired peer.
+ * We received a signaling event from a peer, we record this and
+ * place an exclamation mark next to the peer.
+ */
+void
+LitanyWindow::peer_set_notification(u_int8_t peer_id, int onoff)
+{
+	LitanyPeer	*peer;
+
+	PRECOND(onoff == 0 || onoff == 1);
+
+	peer = peers[peer_id];
+	peer->show_notification(onoff);
+}
+
+/*
+ * Open the peer its chat window and set the signaling state for it
+ * so our peer can open its window too.
  */
 void
 LitanyWindow::chat_open(QListWidgetItem *item)
 {
-	QString			id;
-	QStringList		nargs;
-	QProcess		*proc;
-	LitanyPeer		*peer;
-	const QStringList	args(QApplication::instance()->arguments());
+	LitanyPeer	*peer;
 
 	PRECOND(item != NULL);
 
 	peer = (LitanyPeer *)item;
+	peer->chat_open();
 
-	if (config_file != NULL) {
-		nargs.append("-c");
-		nargs.append(QString("%1").arg(config_file));
-	}
-
-	id = QString("0x%1").arg(peer->peer_id, 2, 16, QLatin1Char('0'));
-
-	nargs.append("chat");
-	nargs.append(id);
-
-	proc = new QProcess(this);
-
-	proc->setProgram(args.at(0));
-	proc->setArguments(nargs);
-
-	connect(proc, &QProcess::finished, this, &LitanyWindow::chat_exit);
-
-	/* XXX - how do we free proc afterwards? */
-	proc->start();
-}
-
-/*
- * XXX
- * A chat process has exited, we should do something here, maybe?
- */
-void
-LitanyWindow::chat_exit(int exit_code)
-{
-	printf("something exited, %d\n", exit_code);
+	signaling->signaling_state(peer->peer_id, 1);
 }

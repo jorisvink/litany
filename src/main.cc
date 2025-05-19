@@ -32,17 +32,6 @@
 static QJsonObject		*config_load(void);
 
 /*
- * The litany chat window with a specific peer, not available
- * if we started the litany normally.
- */
-LitanyChat	*chat = NULL;
-
-/*
- * The litany main window, not available if we started a direct chat.
- */
-LitanyWindow	*litany = NULL;
-
-/*
  * The path to the given configuration file (-c) if any.
  */
 const char	*config_file = NULL;
@@ -52,8 +41,10 @@ main(int argc, char *argv[])
 {
 	QApplication		*app;
 	QMainWindow		*win;
+	LitanyChat		*chat;
 	QJsonObject		*config;
 	char			**nargv;
+	LitanyWindow		*litany;
 	int			ch, ret, nargc;
 
 	config_file = NULL;

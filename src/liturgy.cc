@@ -31,15 +31,20 @@ static void	cathedral_send(const void *, size_t, u_int64_t, void *);
  *
  * The JSON config should contain the following:
  *	flock kek-id cs-id cs-path cathedral:port
+ *
+ * The liturgy runs either in discovery mode or signaling mode depending
+ * on the mode given to the constructor.
  */
-Liturgy::Liturgy(QJsonObject *config)
+Liturgy::Liturgy(QObject *parent, QJsonObject *config, int mode)
 {
 	bool					ok;
 	struct kyrka_cathedral_cfg		cfg;
 	QJsonValue				val;
 	char					*path;
 
+	PRECOND(parent != NULL);
 	PRECOND(config != NULL);
+	PRECOND(mode == LITURGY_MODE_DISCOVERY || mode == LITURGY_MODE_SIGNAL);
 
 	if ((kyrka = kyrka_ctx_alloc(kyrka_event, this)) == NULL)
 		fatal("failed to create kyrka event");
@@ -49,7 +54,10 @@ Liturgy::Liturgy(QJsonObject *config)
 	cfg.udata = this;
 	cfg.send = cathedral_send;
 
-	val = config->take("flock");
+	if (mode == LITURGY_MODE_DISCOVERY)
+		cfg.group = USHRT_MAX;
+
+	val = config->value("flock");
 	if (val.type() != QJsonValue::String)
 		fatal("no or invalid flock found in configuration");
 
@@ -57,7 +65,7 @@ Liturgy::Liturgy(QJsonObject *config)
 	if (!ok)
 		fatal("invalid flock %s", val.toString().toStdString().c_str());
 
-	val = config->take("kek-id");
+	val = config->value("kek-id");
 	if (val.type() != QJsonValue::String)
 		fatal("no or invalid kek-id found in configuration");
 
@@ -67,7 +75,7 @@ Liturgy::Liturgy(QJsonObject *config)
 		    val.toString().toStdString().c_str());
 	}
 
-	val = config->take("cs-id");
+	val = config->value("cs-id");
 	if (val.type() != QJsonValue::String)
 		fatal("no or invalid cs-id found in configuration");
 
@@ -75,7 +83,7 @@ Liturgy::Liturgy(QJsonObject *config)
 	if (!ok)
 		fatal("invalid cs-id %s", val.toString().toStdString().c_str());
 
-	val = config->take("cs-path");
+	val = config->value("cs-path");
 	if (val.type() != QJsonValue::String)
 		fatal("no or invalid cs-path found in configuration");
 
@@ -84,7 +92,7 @@ Liturgy::Liturgy(QJsonObject *config)
 
 	cfg.secret = path;
 
-	val = config->take("cathedral");
+	val = config->value("cathedral");
 	if (val.type() != QJsonValue::String)
 		fatal("no or invalid catheral found in configuration");
 
@@ -100,15 +108,21 @@ Liturgy::Liturgy(QJsonObject *config)
 		fatal("kyrka_cathedral_config: %d", kyrka_last_error(kyrka));
 
 	free(path);
+	runmode = mode;
+	litany = parent;
+
+	memset(signaling, 0, sizeof(signaling));
 
 	socket.bind(QHostAddress::AnyIPv4);
-	notify.setInterval(5000);
+	notify.setInterval(2500);
 
 	connect(&notify, &QTimer::timeout, this, &Liturgy::liturgy_send);
 	connect(&socket, &QUdpSocket::readyRead, this, &Liturgy::packet_read);
 
 	liturgy_send();
 	notify.start();
+
+	printf("liturgy mode %d started\n", runmode);
 }
 
 /*
@@ -120,13 +134,36 @@ Liturgy::~Liturgy(void)
 }
 
 /*
+ * Set the signaling state for a given peer.
+ */
+void
+Liturgy::signaling_state(u_int8_t peer, int onoff)
+{
+	PRECOND(runmode == LITURGY_MODE_SIGNAL);
+	PRECOND(onoff == 0 || onoff == 1);
+
+	signaling[peer] = onoff;
+}
+
+/*
  * Callback for our notify QTimer that fires every few seconds. From here
  * we trigger the sending of a cathedral liturgy packet.
  */
 void
 Liturgy::liturgy_send(void)
 {
-	if (kyrka_cathedral_liturgy(kyrka, NULL, 0) == -1)
+	size_t			len;
+	u_int8_t		*ptr;
+
+	if (runmode == LITURGY_MODE_SIGNAL) {
+		ptr = signaling;
+		len = sizeof(signaling);
+	} else {
+		len = 0;
+		ptr = NULL;
+	}
+
+	if (kyrka_cathedral_liturgy(kyrka, ptr, len) == -1)
 		fatal("kyrka_cathedral_liturgy: %d", kyrka_last_error(kyrka));
 }
 
@@ -166,15 +203,33 @@ static void
 kyrka_event(KYRKA *ctx, union kyrka_event *evt, void *udata)
 {
 	u_int8_t	idx;
+	LitanyWindow	*litany;
+	Liturgy		*liturgy;
 
 	PRECOND(ctx != NULL);
 	PRECOND(evt != NULL);
 	PRECOND(udata != NULL);
 
+	liturgy = (Liturgy *)udata;
+	litany = (LitanyWindow *)liturgy->litany;
+
+	printf("liturgy %p\n", udata);
+
 	switch (evt->type) {
 	case KYRKA_EVENT_LITURGY_RECEIVED:
-		for (idx = 1; idx < KYRKA_PEERS_PER_FLOCK; idx++)
-			litany->peer_set_state(idx, evt->liturgy.peers[idx]);
+		if (liturgy->runmode == LITURGY_MODE_DISCOVERY) {
+			printf("   doing discovery\n");
+			for (idx = 1; idx < KYRKA_PEERS_PER_FLOCK; idx++) {
+				litany->peer_set_state(idx,
+				    evt->liturgy.peers[idx]);
+			}
+		} else {
+			printf("   doing signaling\n");
+			for (idx = 1; idx < KYRKA_PEERS_PER_FLOCK; idx++) {
+				litany->peer_set_notification(idx,
+				    evt->liturgy.peers[idx]);
+			}
+		}
 		break;
 	default:
 		printf("got a libkyrka event %u\n", evt->type);
@@ -188,9 +243,13 @@ kyrka_event(KYRKA *ctx, union kyrka_event *evt, void *udata)
 static void
 cathedral_send(const void *data, size_t len, u_int64_t magic, void *udata)
 {
-	Liturgy		*liturgy = (Liturgy *)udata;
+	Liturgy		*liturgy;
+
+	PRECOND(data != NULL);
+	PRECOND(udata != NULL);
 
 	(void)magic;
+	liturgy = (Liturgy *)udata;
 
 	liturgy->socket_send(data, len);
 }
