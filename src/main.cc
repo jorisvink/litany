@@ -18,7 +18,6 @@
 #include <sys/stat.h>
 
 #include <QFile>
-#include <QApplication>
 #include <QJsonDocument>
 #include <QStandardPaths>
 
@@ -31,6 +30,9 @@
 
 static QJsonObject		*config_load(void);
 
+/* The global application. */
+QApplication	*app = NULL;
+
 /*
  * The path to the given configuration file (-c) if any.
  */
@@ -39,7 +41,6 @@ const char	*config_file = NULL;
 int
 main(int argc, char *argv[])
 {
-	QApplication		*app;
 	QMainWindow		*win;
 	LitanyChat		*chat;
 	QJsonObject		*config;

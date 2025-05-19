@@ -19,6 +19,7 @@
 
 #include <sys/queue.h>
 
+#include <QApplication>
 #include <QObject>
 #include <QUdpSocket>
 #include <QMainWindow>
@@ -29,11 +30,17 @@
 #include <QProcess>
 #include <QListView>
 #include <QJsonObject>
+#include <QSoundEffect>
 #include <QStandardItemModel>
 
 #include <libkyrka/libkyrka.h>
 
 #include "litany.h"
+
+/* Path to the place we install things such as sounds etc. */
+#define LITANY_SHARE_DIR		"/usr/local/share/litany"
+
+extern QApplication	*app;
 
 /*
  * A tunnel object, responsible for maintaing a single peer-to-peer
@@ -131,7 +138,9 @@ public:
 	LitanyPeer(LitanyWindow *, u_int8_t);
 	~LitanyPeer(void);
 
+	bool		online;
 	u_int8_t	peer_id;
+
 	void		chat_open(void);
 	void		show_notification(int);
 
@@ -139,6 +148,9 @@ private slots:
 	void		chat_close(int);
 
 private:
+	/* The last time we played the notification sound. */
+	time_t		last_notification;
+
 	/* The chat window its process, if running. */
 	QProcess	*proc;
 
@@ -163,6 +175,8 @@ public:
 	void peer_set_state(u_int8_t, int);
 	void peer_set_notification(u_int8_t, int);
 
+	/* Sound effects for different notifications. */
+	QSoundEffect		alert;
 private:
 	/*
 	 * The UI online and offline lists and the LitanyPeers that
@@ -198,6 +212,9 @@ private:
 	QListView			*view;
 	QLineEdit			*input;
 	QStandardItemModel		*model;
+
+	/* Different sound effects. */
+	QSoundEffect			message;
 
 	/* * The libkyrka tunnel object handling our encrypted transport. */
 	Tunnel				*tunnel;

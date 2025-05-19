@@ -133,7 +133,9 @@ Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
 
 	socket.bind(QHostAddress::AnyIPv4);
 
+	last_notify = 0;
 	LIST_INIT(&msgs);
+
 	flush.setInterval(1000);
 	manager.setInterval(1000);
 

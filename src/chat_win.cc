@@ -69,6 +69,9 @@ LitanyChat::LitanyChat(QJsonObject *config, const char *peer)
 
 	setCentralWidget(widget);
 
+	message.setSource(QUrl::fromLocalFile(
+	    QString("%1/sounds/pending.wav").arg(LITANY_SHARE_DIR)));
+
 	tunnel = new Tunnel(config, peer, this);
 
 	message_show("[exchange]: no keys",
@@ -90,7 +93,7 @@ LitanyChat::create_message(void)
 		full = QString(">> %1").arg(text);
 		message_show(full.toUtf8().data(),
 		    LITANY_MESSAGE_SYSTEM_ID, Qt::white);
-		tunnel->send_text(full.toUtf8().data(), full.toUtf8().length());
+		tunnel->send_text(text.toUtf8().data(), text.toUtf8().length());
 		input->setText("");
 	}
 }
@@ -125,6 +128,11 @@ LitanyChat::message_show(const char *msg, u_int64_t id, Qt::GlobalColor color)
 				printf("already seen %lu\n", id);
 				return;
 			}
+		}
+
+		if (this->isActiveWindow() == false) {
+			message.play();
+			app->alert(this);
 		}
 	}
 

@@ -14,9 +14,10 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <QUrl>
+#include <QLabel>
 #include <QBoxLayout>
 #include <QPushButton>
-#include <QLabel>
 #include <QApplication>
 
 #include "litany_qt.h"
@@ -30,6 +31,7 @@ LitanyPeer::LitanyPeer(LitanyWindow *parent, u_int8_t id)
 {
 	proc = NULL;
 	peer_id = id;
+	online = false;
 	litany = parent;
 }
 
@@ -39,6 +41,8 @@ LitanyPeer::LitanyPeer(LitanyWindow *parent, u_int8_t id)
 void
 LitanyPeer::show_notification(int onoff)
 {
+	struct timespec		ts;
+
 	PRECOND(onoff == 0 || onoff == 1);
 
 	if (proc) {
@@ -46,6 +50,11 @@ LitanyPeer::show_notification(int onoff)
 		setText(QString("Peer %1 (chat open)").arg(peer_id));
 	} else {
 		if (onoff) {
+			(void)clock_gettime(CLOCK_MONOTONIC, &ts);
+			if ((ts.tv_sec - last_notification) >= 5) {
+				litany->alert.play();
+				last_notification = ts.tv_sec;
+			}
 			setForeground(Qt::yellow);
 			setText(QString("Peer %1 (chat pending)").arg(peer_id));
 		} else {
@@ -87,8 +96,6 @@ LitanyPeer::chat_open(void)
 	connect(proc, &QProcess::finished, this, &LitanyPeer::chat_close);
 	proc->start();
 
-	printf("peer %p\n", (void *)this);
-	printf("proc %p\n", (void *)proc);
 	printf("chat window for %u opened\n", peer_id);
 }
 
@@ -98,12 +105,15 @@ LitanyPeer::chat_open(void)
 void
 LitanyPeer::chat_close(int exit_status)
 {
-	printf("peer %p\n", (void *)this);
-	printf("proc %p\n", (void *)proc);
+	struct timespec		ts;
+
 	PRECOND(proc != NULL);
 
 	delete proc;
 	proc = NULL;
+
+	(void)clock_gettime(CLOCK_MONOTONIC, &ts);
+	last_notification = ts.tv_sec;
 
 	litany->signaling_state(peer_id, 0);
 	printf("chat window for %u closed (%d)\n", peer_id, exit_status);
@@ -162,6 +172,9 @@ LitanyWindow::LitanyWindow(QJsonObject *config)
 	layout->addWidget(label);
 	layout->addWidget(offline);
 
+	alert.setSource(QUrl::fromLocalFile(
+	    QString("%1/sounds/incoming.wav").arg(LITANY_SHARE_DIR)));
+
 	for (int i = 1; i < 256; i++) {
 		peers[i] = new LitanyPeer(this, i);
 		peers[i]->setText(QString("Peer %1").arg(i));
@@ -207,11 +220,17 @@ LitanyWindow::peer_set_state(u_int8_t id, int is_online)
 	PRECOND(is_online == 1 || is_online == 0);
 
 	if (is_online) {
-		offline->takeItem(offline->row(peers[id]));
-		online->insertItem(id - 1, peers[id]);
+		if (peers[id]->online == false) {
+			offline->takeItem(offline->row(peers[id]));
+			online->insertItem(id - 1, peers[id]);
+			peers[id]->online = true;
+		}
 	} else {
-		online->takeItem(offline->row(peers[id]));
-		offline->insertItem(id - 1, peers[id]);
+		if (peers[id]->online == true) {
+			online->takeItem(online->row(peers[id]));
+			offline->insertItem(id - 1, peers[id]);
+			peers[id]->online = false;
+		}
 	}
 }
 
