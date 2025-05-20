@@ -52,6 +52,7 @@ public:
 	Tunnel(QJsonObject *, const char *, QObject *);
 	~Tunnel(void);
 
+	void send_heartbeat(void);
 	void send_text(const void *, size_t);
 	void send_msg(struct litany_msg_data *);
 
@@ -62,6 +63,8 @@ public:
 	void recv_msg(Qt::GlobalColor, u_int64_t, const char *, ...);
 
 	void system_msg(const char *, ...);
+
+	void peer_alive(void);
 	void peer_update(struct kyrka_event_peer *);
 
 private slots:
@@ -87,7 +90,9 @@ private:
 	KYRKA			*kyrka;
 
 	QTimer			manager;
+	time_t			last_update;
 	time_t			last_notify;
+	time_t			last_heartbeat;
 
 	/* Timer to periodically flush messages. */
 	QTimer			flush;

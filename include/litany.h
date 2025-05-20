@@ -48,9 +48,10 @@ extern "C" {
 /* The maximum number of bytes per message we can submit. */
 #define LITANY_MESSAGE_MAX_SIZE		512
 
-/* The different types of messages, for now only text. */
+/* The different types of messages. */
 #define LITANY_MESSAGE_TYPE_TEXT	1
 #define LITANY_MESSAGE_TYPE_ACK		2
+#define LITANY_MESSAGE_TYPE_HEARTBEAT	3
 
 /*
  * A message containing some data that we are sending to the other

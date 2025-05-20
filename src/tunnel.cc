@@ -140,17 +140,20 @@ Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
 	socket.bind(QHostAddress::AnyIPv4);
 
 	last_notify = 0;
+	last_update = 0;
+	last_heartbeat = 0;
 	TAILQ_INIT(&msgs);
 
 	flush.setInterval(1000);
-	manager.setInterval(1000);
+	manager.setInterval(500);
 
 	connect(&manager, &QTimer::timeout, this, &Tunnel::manage);
 	connect(&flush, &QTimer::timeout, this, &Tunnel::resend_pending);
 	connect(&socket, &QUdpSocket::readyRead, this, &Tunnel::packet_read);
 
-	flush.start();
 	last_notify = 0;
+
+	flush.start();
 	manager.start();
 
 	system_msg("[cathedral]: address %s:%u",
@@ -175,6 +178,9 @@ Tunnel::~Tunnel(void)
 /*
  * Manage the tunnel by periodically sending a cathedral notification
  * or making forward progress on our keying.
+ * 
+ * We also send heartbeat packets every second to our peer, this helps
+ * facilitate holepunching and to detect if a peer has gone "offline".
  */
 void
 Tunnel::manage(void)
@@ -199,6 +205,14 @@ Tunnel::manage(void)
 			fatal("kyrka_cathedral_nat_detection: %d",
 			    kyrka_last_error(kyrka));
 		}
+	}
+
+	if ((ts.tv_sec - last_heartbeat) >= 1)
+		send_heartbeat();
+
+	if (last_update != 0 && (ts.tv_sec - last_update) >= 10) {
+		system_msg("[peer]: offline (peer closed window or timeout)");
+		last_update = 0;
 	}
 }
 
@@ -280,6 +294,22 @@ Tunnel::send_ack(u_int64_t id)
 
 	data.id = htobe64(id);
 	data.type = LITANY_MESSAGE_TYPE_ACK;
+
+	send_msg(&data);
+}
+
+/*
+ * Send a simple heartbeat to our peer.
+ */
+void
+Tunnel::send_heartbeat(void)
+{
+	struct litany_msg_data		data;
+
+	memset(&data, 0, sizeof(data));
+
+	data.id = ULONG_MAX;
+	data.type = LITANY_MESSAGE_TYPE_HEARTBEAT;
 
 	send_msg(&data);
 }
@@ -384,6 +414,18 @@ Tunnel::peer_update(struct kyrka_event_peer *peer)
 }
 
 /*
+ * Update the peer its last_update timestamp.
+ */
+void
+Tunnel::peer_alive(void)
+{
+	struct timespec		ts;
+
+	(void)clock_gettime(CLOCK_MONOTONIC, &ts);
+	last_update = ts.tv_sec;
+}
+
+/*
  * Called when a new libkyrka event triggers.
  */
 static void
@@ -399,9 +441,12 @@ kyrka_event(KYRKA *ctx, union kyrka_event *evt, void *udata)
 
 	switch (evt->type) {
 	case KYRKA_EVENT_KEYS_INFO:
+		tunnel->peer_alive();
 		tunnel->system_msg("[tunnel]: tx=%08x rx=%08x (peer=%llx)",
 		    evt->keys.tx_spi, evt->keys.rx_spi,
 		    evt->keys.peer_id);
+		if (evt->keys.tx_spi != 0 && evt->keys.rx_spi != 0)
+			tunnel->system_msg("[tunnel]: established");
 		break;
 	case KYRKA_EVENT_EXCHANGE_INFO:
 		tunnel->system_msg("[exchange]: %s", evt->exchange.reason);
@@ -477,6 +522,7 @@ heaven_send(const void *data, size_t len, u_int64_t seq, void *udata)
 	}
 
 	tunnel = (Tunnel *)udata;
+	tunnel->peer_alive();
 
 	switch (msg->type) {
 	case LITANY_MESSAGE_TYPE_TEXT:
@@ -486,6 +532,8 @@ heaven_send(const void *data, size_t len, u_int64_t seq, void *udata)
 		break;
 	case LITANY_MESSAGE_TYPE_ACK:
 		tunnel->recv_ack(msg->id);
+		break;
+	case LITANY_MESSAGE_TYPE_HEARTBEAT:
 		break;
 	default:
 		printf("unknown packet %u\n", msg->type);

@@ -70,9 +70,6 @@ LitanyChat::LitanyChat(QJsonObject *config, const char *peer)
 	setCentralWidget(widget);
 
 	tunnel = new Tunnel(config, peer, this);
-
-	message_show("[exchange]: no keys",
-	    LITANY_MESSAGE_SYSTEM_ID, Qt::yellow);
 }
 
 /*

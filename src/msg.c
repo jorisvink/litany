@@ -72,7 +72,7 @@ litany_msg_ack(struct litany_msg_list *list, u_int64_t ack)
 	PRECOND(list != NULL);
 
 	TAILQ_FOREACH(msg, list, list) {
-		if (msg->data.id == ack) {
+		if (msg->id == ack) {
 			TAILQ_REMOVE(list, msg, list);
 			free(msg);
 			return;
