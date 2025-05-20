@@ -207,8 +207,10 @@ Tunnel::manage(void)
 		}
 	}
 
-	if ((ts.tv_sec - last_heartbeat) >= 1)
+	if ((ts.tv_sec - last_heartbeat) >= 1) {
+		last_heartbeat = ts.tv_sec;
 		send_heartbeat();
+	}
 
 	if (last_update != 0 && (ts.tv_sec - last_update) >= 10) {
 		system_msg("[peer]: offline (peer closed window or timeout)");
