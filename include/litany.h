@@ -67,10 +67,10 @@ struct litany_msg {
 	u_int64_t		id;
 	time_t			age;
 	struct litany_msg_data	data;
-	LIST_ENTRY(litany_msg)	list;
+	TAILQ_ENTRY(litany_msg)	list;
 };
 
-LIST_HEAD(litany_msg_list, litany_msg);
+TAILQ_HEAD(litany_msg_list, litany_msg);
 
 /* src/main.cc */
 extern const char	*config_file;

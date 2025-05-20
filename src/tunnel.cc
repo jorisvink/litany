@@ -16,6 +16,9 @@
 
 #include <QJsonValue>
 
+#include <arpa/inet.h>
+#include <netinet/in.h>
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -134,7 +137,7 @@ Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
 	socket.bind(QHostAddress::AnyIPv4);
 
 	last_notify = 0;
-	LIST_INIT(&msgs);
+	TAILQ_INIT(&msgs);
 
 	flush.setInterval(1000);
 	manager.setInterval(1000);
@@ -146,6 +149,9 @@ Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
 	flush.start();
 	last_notify = 0;
 	manager.start();
+
+	system_msg("[cathedral]: address %s:%u",
+	    address.toString().toUtf8().data(), port);
 }
 
 /*
@@ -155,8 +161,8 @@ Tunnel::~Tunnel(void)
 {
 	struct litany_msg	*msg;
 
-	while ((msg = LIST_FIRST(&msgs)) != NULL) {
-		LIST_REMOVE(msg, list);
+	while ((msg = TAILQ_FIRST(&msgs)) != NULL) {
+		TAILQ_REMOVE(&msgs, msg, list);
 		free(msg);
 	}
 
@@ -183,6 +189,11 @@ Tunnel::manage(void)
 
 		if (kyrka_cathedral_notify(kyrka) == -1) {
 			fatal("kyrka_cathedral_notify: %d",
+			    kyrka_last_error(kyrka));
+		}
+
+		if (kyrka_cathedral_nat_detection(kyrka) == -1) {
+			fatal("kyrka_cathedral_nat_detection: %d",
 			    kyrka_last_error(kyrka));
 		}
 	}
@@ -213,9 +224,21 @@ Tunnel::packet_read(void)
  * access to the socket in the Tunnel class.
  */
 void
-Tunnel::socket_send(const void *data, size_t len)
+Tunnel::socket_send(const void *data, size_t len, int is_nat)
 {
-	if (socket.writeDatagram((const char *)data, len, address, port) == -1)
+	quint16			dport;
+
+	PRECOND(data != NULL);
+	PRECOND(len > 0);
+	PRECOND(is_nat == 0 || is_nat == 1);
+
+	if (is_nat) {
+		dport = port + 1;
+	} else {
+		dport = port;
+	}
+
+	if (socket.writeDatagram((const char *)data, len, address, dport) == -1)
 		printf("failed to write to cathedral: %d\n", socket.error());
 }
 
@@ -301,17 +324,9 @@ Tunnel::recv_msg(Qt::GlobalColor color, u_int64_t id, const char *fmt, ...)
 void
 Tunnel::recv_ack(u_int64_t id)
 {
-	struct litany_msg	*msg;
-
 	PRECOND(id != LITANY_MESSAGE_SYSTEM_ID);
 
-	LIST_FOREACH(msg, &msgs, list) {
-		if (msg->id == id) {
-			LIST_REMOVE(msg, list);
-			free(msg);
-			return;
-		}
-	}
+	litany_msg_ack(&msgs, id);
 }
 
 /*
@@ -327,11 +342,35 @@ Tunnel::resend_pending(void)
 
 	(void)clock_gettime(CLOCK_MONOTONIC, &ts);
 
-	LIST_FOREACH(msg, &msgs, list) {
+	TAILQ_FOREACH(msg, &msgs, list) {
 		if ((ts.tv_sec - msg->age) >= 5) {
 			msg->age = ts.tv_sec;
 			send_msg(&msg->data);
 		}
+	}
+}
+
+/*
+ * Potentially update the peer its ip address and port.
+ */
+void
+Tunnel::peer_update(struct kyrka_event_peer *peer)
+{
+	struct in_addr		in;
+
+	PRECOND(peer != NULL);
+
+	peer->ip = be32toh(peer->ip);
+	peer->port = be16toh(peer->port);
+
+	if (peer->ip != address.toIPv4Address() || peer->port != port) {
+		in.s_addr = peer->ip;
+
+		system_msg("[p2p]: peer address %s:%u",
+		    inet_ntoa(in), peer->port);
+
+		port = peer->port;
+		address = QHostAddress(peer->ip);
 	}
 }
 
@@ -361,6 +400,9 @@ kyrka_event(KYRKA *ctx, union kyrka_event *evt, void *udata)
 	case KYRKA_EVENT_AMBRY_RECEIVED:
 		tunnel->system_msg("[cathedral]: got ambry 0x%08x",
 		    evt->ambry.generation);
+		break;
+	case KYRKA_EVENT_PEER_DISCOVERY:
+		tunnel->peer_update(&evt->peer);
 		break;
 	default:
 		printf("event 0x%02x\n", evt->type);
@@ -456,7 +498,7 @@ purgatory_send(const void *data, size_t len, u_int64_t seq, void *udata)
 	(void)seq;
 
 	tunnel = (Tunnel *)udata;
-	tunnel->socket_send(data, len);
+	tunnel->socket_send(data, len, 0);
 }
 
 /*
@@ -465,6 +507,7 @@ purgatory_send(const void *data, size_t len, u_int64_t seq, void *udata)
 static void
 cathedral_send(const void *data, size_t len, u_int64_t magic, void *udata)
 {
+	int		is_nat;
 	Tunnel		*tunnel;
 
 	PRECOND(data != NULL);
@@ -474,6 +517,11 @@ cathedral_send(const void *data, size_t len, u_int64_t magic, void *udata)
 
 	PRECOND(udata != NULL);
 
+	if (magic == KYRKA_CATHEDRAL_NAT_MAGIC)
+		is_nat = true;
+	else
+		is_nat = false;
+
 	tunnel = (Tunnel *)udata;
-	tunnel->socket_send(data, len);
+	tunnel->socket_send(data, len, is_nat);
 }

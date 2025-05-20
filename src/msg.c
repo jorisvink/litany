@@ -55,7 +55,7 @@ litany_msg_register(struct litany_msg_list *list, const void *data, size_t len)
 	msg->data.id = htobe64(msg->id);
 	msg->data.type = LITANY_MESSAGE_TYPE_TEXT;
 
-	LIST_INSERT_HEAD(list, msg, list);
+	TAILQ_INSERT_TAIL(list, msg, list);
 	printf("registered message %" PRIx64 "\n", seqno);
 
 	seqno++;
@@ -73,10 +73,10 @@ litany_msg_ack(struct litany_msg_list *list, u_int64_t ack)
 
 	PRECOND(list != NULL);
 
-	LIST_FOREACH(msg, list, list) {
+	TAILQ_FOREACH(msg, list, list) {
 		if (msg->data.id == ack) {
 			printf("%" PRIx64 " ACK'd\n", ack);
-			LIST_REMOVE(msg, list);
+			TAILQ_REMOVE(list, msg, list);
 			free(msg);
 			return;
 		}

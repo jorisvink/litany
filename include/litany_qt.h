@@ -55,13 +55,14 @@ public:
 	void send_text(const void *, size_t);
 	void send_msg(struct litany_msg_data *);
 
-	void socket_send(const void *, size_t);
+	void socket_send(const void *, size_t, int);
 
 	void send_ack(u_int64_t);
 	void recv_ack(u_int64_t);
 	void recv_msg(Qt::GlobalColor, u_int64_t, const char *, ...);
 
 	void system_msg(const char *, ...);
+	void peer_update(struct kyrka_event_peer *);
 
 private slots:
 	void manage(void);
