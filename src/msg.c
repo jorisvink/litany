@@ -56,8 +56,6 @@ litany_msg_register(struct litany_msg_list *list, const void *data, size_t len)
 	msg->data.type = LITANY_MESSAGE_TYPE_TEXT;
 
 	TAILQ_INSERT_TAIL(list, msg, list);
-	printf("registered message %" PRIx64 "\n", seqno);
-
 	seqno++;
 
 	return (msg);
@@ -75,7 +73,6 @@ litany_msg_ack(struct litany_msg_list *list, u_int64_t ack)
 
 	TAILQ_FOREACH(msg, list, list) {
 		if (msg->data.id == ack) {
-			printf("%" PRIx64 " ACK'd\n", ack);
 			TAILQ_REMOVE(list, msg, list);
 			free(msg);
 			return;

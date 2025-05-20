@@ -114,13 +114,16 @@ Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
 	if (val.type() != QJsonValue::String)
 		fatal("no or invalid catheral found in configuration");
 
-	port = val.toString().split(":")[1].toInt(&ok, 10);
+	cathedral_port = val.toString().split(":")[1].toInt(&ok, 10);
 	if (!ok) {
 		fatal("invalid port in %s",
 		    val.toString().toStdString().c_str());
 	}
 
-	address.setAddress(val.toString().split(":")[0]);
+	cathedral_address.setAddress(val.toString().split(":")[0]);
+
+	peer_port = cathedral_port;
+	peer_address = cathedral_address;
 
 	if (kyrka_heaven_ifc(kyrka, heaven_send, this) == -1)
 		fatal("kyrka_heaven_ifc: %d", kyrka_last_error(kyrka));
@@ -151,7 +154,7 @@ Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
 	manager.start();
 
 	system_msg("[cathedral]: address %s:%u",
-	    address.toString().toUtf8().data(), port);
+	    cathedral_address.toString().toUtf8().data(), cathedral_port);
 }
 
 /*
@@ -224,22 +227,28 @@ Tunnel::packet_read(void)
  * access to the socket in the Tunnel class.
  */
 void
-Tunnel::socket_send(const void *data, size_t len, int is_nat)
+Tunnel::socket_send(const void *data, size_t len, int is_cathedral, int is_nat)
 {
+	QHostAddress		ip;
 	quint16			dport;
 
 	PRECOND(data != NULL);
 	PRECOND(len > 0);
+	PRECOND(is_cathedral == 0 || is_cathedral == 1);
 	PRECOND(is_nat == 0 || is_nat == 1);
 
-	if (is_nat) {
-		dport = port + 1;
+	if (is_cathedral) {
+		ip = cathedral_address;
+		dport = cathedral_port;
+		if (is_nat)
+			dport++;
 	} else {
-		dport = port;
+		ip = peer_address;
+		dport = peer_port;
 	}
 
-	if (socket.writeDatagram((const char *)data, len, address, dport) == -1)
-		printf("failed to write to cathedral: %d\n", socket.error());
+	if (socket.writeDatagram((const char *)data, len, ip, dport) == -1)
+		printf("failed to write to socket: %d\n", socket.error());
 }
 
 /*
@@ -360,17 +369,17 @@ Tunnel::peer_update(struct kyrka_event_peer *peer)
 
 	PRECOND(peer != NULL);
 
+	in.s_addr = peer->ip;
 	peer->ip = be32toh(peer->ip);
 	peer->port = be16toh(peer->port);
 
-	if (peer->ip != address.toIPv4Address() || peer->port != port) {
-		in.s_addr = peer->ip;
-
+	if (peer->ip != peer_address.toIPv4Address() ||
+	    peer->port != peer_port) {
 		system_msg("[p2p]: peer address %s:%u",
 		    inet_ntoa(in), peer->port);
 
-		port = peer->port;
-		address = QHostAddress(peer->ip);
+		peer_port = peer->port;
+		peer_address = QHostAddress(peer->ip);
 	}
 }
 
@@ -498,7 +507,7 @@ purgatory_send(const void *data, size_t len, u_int64_t seq, void *udata)
 	(void)seq;
 
 	tunnel = (Tunnel *)udata;
-	tunnel->socket_send(data, len, 0);
+	tunnel->socket_send(data, len, 0, 0);
 }
 
 /*
@@ -523,5 +532,5 @@ cathedral_send(const void *data, size_t len, u_int64_t magic, void *udata)
 		is_nat = false;
 
 	tunnel = (Tunnel *)udata;
-	tunnel->socket_send(data, len, is_nat);
+	tunnel->socket_send(data, len, 1, is_nat);
 }
