@@ -121,8 +121,6 @@ Liturgy::Liturgy(QObject *parent, QJsonObject *config, int mode)
 
 	liturgy_send();
 	notify.start();
-
-	printf("liturgy mode %d started\n", runmode);
 }
 
 /*
@@ -213,18 +211,14 @@ kyrka_event(KYRKA *ctx, union kyrka_event *evt, void *udata)
 	liturgy = (Liturgy *)udata;
 	litany = (LitanyWindow *)liturgy->litany;
 
-	printf("liturgy %p\n", udata);
-
 	switch (evt->type) {
 	case KYRKA_EVENT_LITURGY_RECEIVED:
 		if (liturgy->runmode == LITURGY_MODE_DISCOVERY) {
-			printf("   doing discovery\n");
 			for (idx = 1; idx < KYRKA_PEERS_PER_FLOCK; idx++) {
 				litany->peer_set_state(idx,
 				    evt->liturgy.peers[idx]);
 			}
 		} else {
-			printf("   doing signaling\n");
 			for (idx = 1; idx < KYRKA_PEERS_PER_FLOCK; idx++) {
 				litany->peer_set_notification(idx,
 				    evt->liturgy.peers[idx]);
