@@ -121,6 +121,29 @@ litany_json_number(QJsonObject *json, const char *field, u_int64_t max)
 	return (value);
 }
 
+/*
+ * Returns a JSON string field as a C-string.
+ * The caller must free the returned result.
+ */
+char *
+litany_json_string(QJsonObject *json, const char *field)
+{
+	QJsonValue	val;
+	char		*value;
+
+	PRECOND(json != NULL);
+	PRECOND(field != NULL);
+
+	val = json->value(field);
+	if (val.type() != QJsonValue::String)
+		fatal("no or invalid '%s' found in configuration", field);
+
+	if ((value = strdup(val.toString().toStdString().c_str())) == NULL)
+		fatal("strdup failed");
+
+	return (value);
+}
+
 /* Bad juju happened. */
 void
 fatal(const char *fmt, ...)

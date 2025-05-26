@@ -66,31 +66,16 @@ Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
 	if (cfg.flock & 0xff)
 		fatal("flock invalid (contains domain bits)");
 
-	cfg.flock |= litany_json_number(config, "flock-domain", UCHAR_MAX);
-	cfg.tunnel = litany_json_number(config, "kek-id", UCHAR_MAX) << 8;
-	cfg.tunnel |= peer_id.toUShort(&ok, 16);
+	cfg.tunnel = peer_id.toUShort(&ok, 16);
+	cfg.tunnel |= litany_json_number(config, "kek-id", UCHAR_MAX) << 8;
 
 	cfg.identity = litany_json_number(config, "cs-id", UINT_MAX);
+	cfg.flock |= litany_json_number(config, "flock-domain", UCHAR_MAX);
 
-	val = config->value("kek-path");
-	if (val.type() != QJsonValue::String)
-		fatal("no or invalid kek-path found in configuration");
-
-	if ((kek_path = strdup(val.toString().toUtf8().data())) == NULL)
-		fatal("strdup failed");
+	cs_path = litany_json_string(config, "cs-path");
+	kek_path = litany_json_string(config, "kek-path");
 
 	cfg.kek = kek_path;
-
-	if (!ok)
-		fatal("invalid cs-id %s", val.toString().toStdString().c_str());
-
-	val = config->value("cs-path");
-	if (val.type() != QJsonValue::String)
-		fatal("no or invalid cs-path found in configuration");
-
-	if ((cs_path = strdup(val.toString().toUtf8().data())) == NULL)
-		fatal("strdup failed");
-
 	cfg.secret = cs_path;
 
 	val = config->value("cathedral");

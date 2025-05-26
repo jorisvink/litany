@@ -41,6 +41,7 @@
 
 extern QApplication	*app;
 
+char		*litany_json_string(QJsonObject *, const char *);
 u_int64_t	litany_json_number(QJsonObject *, const char *, u_int64_t);
 
 /*

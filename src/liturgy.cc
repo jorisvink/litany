@@ -61,17 +61,11 @@ Liturgy::Liturgy(QObject *parent, QJsonObject *config, int mode)
 	if (cfg.flock & 0xff)
 		fatal("flock invalid (contains domain bits)");
 
-	cfg.flock |= litany_json_number(config, "flock-domain", UCHAR_MAX);
 	cfg.tunnel = litany_json_number(config, "kek-id", UCHAR_MAX);
 	cfg.identity = litany_json_number(config, "cs-id", UINT_MAX);
+	cfg.flock |= litany_json_number(config, "flock-domain", UCHAR_MAX);
 
-	val = config->value("cs-path");
-	if (val.type() != QJsonValue::String)
-		fatal("no or invalid cs-path found in configuration");
-
-	if ((path = strdup(val.toString().toStdString().c_str())) == NULL)
-		fatal("strdup failed");
-
+	path = litany_json_string(config, "cs-path");
 	cfg.secret = path;
 
 	val = config->value("cathedral");
