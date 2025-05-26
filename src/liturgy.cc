@@ -41,7 +41,6 @@ Liturgy::Liturgy(QObject *parent, QJsonObject *config, int mode)
 	struct kyrka_cathedral_cfg		cfg;
 	QJsonValue				val;
 	char					*path;
-	u_int8_t				domain;
 
 	PRECOND(parent != NULL);
 	PRECOND(config != NULL);
@@ -62,9 +61,7 @@ Liturgy::Liturgy(QObject *parent, QJsonObject *config, int mode)
 	if (cfg.flock & 0xff)
 		fatal("flock invalid (contains domain bits)");
 
-	domain = litany_json_number(config, "flock-domain", UCHAR_MAX);
-	cfg.flock |= domain;
-
+	cfg.flock |= litany_json_number(config, "flock-domain", UCHAR_MAX);
 	cfg.tunnel = litany_json_number(config, "kek-id", UCHAR_MAX);
 	cfg.identity = litany_json_number(config, "cs-id", UINT_MAX);
 

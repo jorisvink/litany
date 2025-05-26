@@ -44,7 +44,6 @@ Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
 	bool					ok;
 	struct kyrka_cathedral_cfg		cfg;
 	QJsonValue				val;
-	u_int8_t				domain;
 	QString					peer_id;
 	char					*kek_path, *cs_path;
 
@@ -67,9 +66,7 @@ Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
 	if (cfg.flock & 0xff)
 		fatal("flock invalid (contains domain bits)");
 
-	domain = litany_json_number(config, "flock-domain", UCHAR_MAX);
-	cfg.flock |= domain;
-
+	cfg.flock |= litany_json_number(config, "flock-domain", UCHAR_MAX);
 	cfg.tunnel = litany_json_number(config, "kek-id", UCHAR_MAX) << 8;
 	cfg.tunnel |= peer_id.toUShort(&ok, 16);
 
