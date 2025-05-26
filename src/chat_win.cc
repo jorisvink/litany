@@ -25,11 +25,15 @@
  */
 LitanyChat::LitanyChat(QJsonObject *config, const char *peer)
 {
+	u_int8_t	id;
 	QWidget		*widget;
 	QBoxLayout	*layout;
 
 	PRECOND(config != NULL);
 	PRECOND(peer != NULL);
+
+	id = litany_json_number(config, "kek-id", UCHAR_MAX) & 0xff;
+	kek_id = QString("%1").arg(id, 2, 16, QLatin1Char('0'));
 
 	setWindowTitle(QString("Litany - Chat with %1").arg(peer));
 	setGeometry(100, 100, 500, 400);
@@ -84,7 +88,7 @@ LitanyChat::create_message(void)
 	text = input->text();
 
 	if (text.length() > 0 && text.length() < LITANY_MESSAGE_MAX_SIZE) {
-		full = QString(">> %1").arg(text);
+		full = QString("<%1> %2").arg(kek_id).arg(text);
 		message_show(full.toUtf8().data(),
 		    LITANY_MESSAGE_SYSTEM_ID, Qt::white);
 		tunnel->send_text(text.toUtf8().data(), text.toUtf8().length());
@@ -118,10 +122,8 @@ LitanyChat::message_show(const char *msg, u_int64_t id, Qt::GlobalColor color)
 			val = model->data(index, Qt::UserRole);
 			qid = val.toULongLong();
 
-			if (qid == id) {
-				printf("already seen %lu\n", id);
+			if (qid == id)
 				return;
-			}
 		}
 
 		if (this->isActiveWindow() == false)

@@ -44,7 +44,7 @@ Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
 	bool					ok;
 	struct kyrka_cathedral_cfg		cfg;
 	QJsonValue				val;
-	QString					peer_id;
+	QString					tmp;
 	char					*kek_path, *cs_path;
 
 	PRECOND(config != NULL);
@@ -56,8 +56,9 @@ Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
 
 	memset(&cfg, 0, sizeof(cfg));
 
+	tmp = peer;
 	owner = obj;
-	peer_id = peer;
+	peer_id = tmp.toUShort(&ok, 16) & 0xff;
 
 	cfg.udata = this;
 	cfg.send = cathedral_send;
@@ -66,8 +67,8 @@ Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
 	if (cfg.flock & 0xff)
 		fatal("flock invalid (contains domain bits)");
 
-	cfg.tunnel = peer_id.toUShort(&ok, 16);
-	cfg.tunnel |= litany_json_number(config, "kek-id", UCHAR_MAX) << 8;
+	cfg.tunnel = litany_json_number(config, "kek-id", UCHAR_MAX) << 8;
+	cfg.tunnel |= peer_id;
 
 	cfg.identity = litany_json_number(config, "cs-id", UINT_MAX);
 	cfg.flock |= litany_json_number(config, "flock-domain", UCHAR_MAX);
@@ -495,8 +496,8 @@ heaven_send(const void *data, size_t len, u_int64_t seq, void *udata)
 
 	switch (msg->type) {
 	case LITANY_MESSAGE_TYPE_TEXT:
-		tunnel->recv_msg(Qt::gray, msg->id, "<< %.*s",
-		    (int)msg->len, (const char *)msg->data);
+		tunnel->recv_msg(Qt::gray, msg->id, "<%02x> %.*s",
+		    tunnel->peer_id, (int)msg->len, (const char *)msg->data);
 		tunnel->send_ack(msg->id);
 		break;
 	case LITANY_MESSAGE_TYPE_ACK:

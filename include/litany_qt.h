@@ -70,6 +70,9 @@ public:
 	void peer_alive(void);
 	void peer_update(struct kyrka_event_peer *);
 
+	/* The peer_id we are talking too. */
+	u_int8_t		peer_id;
+
 private slots:
 	void manage(void);
 	void packet_read(void);
@@ -224,6 +227,9 @@ private:
 	QListView			*view;
 	QLineEdit			*input;
 	QStandardItemModel		*model;
+
+	/* Our own id in the flock (kek-id). */
+	QString				kek_id;
 
 	/* * The libkyrka tunnel object handling our encrypted transport. */
 	Tunnel				*tunnel;

@@ -71,8 +71,12 @@ main(int argc, char *argv[])
 			litany = new LitanyWindow(config);
 			win = (QMainWindow *)litany;
 		} else if (nargc == 2) {
-			chat = new LitanyChat(config, nargv[1]);
-			win = (QMainWindow *)chat;
+			if (!strcmp(nargv[0], "chat")) {
+				chat = new LitanyChat(config, nargv[1]);
+				win = (QMainWindow *)chat;
+			} else {
+				fatal("unknown mode '%s'", nargv[0]);
+			}
 		} else {
 			fatal("invalid usage with %d arguments", argc);
 		}
