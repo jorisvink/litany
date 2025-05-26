@@ -44,6 +44,7 @@ Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
 	bool					ok;
 	struct kyrka_cathedral_cfg		cfg;
 	QJsonValue				val;
+	u_int8_t				domain;
 	QString					peer_id;
 	char					*kek_path, *cs_path;
 
@@ -62,27 +63,17 @@ Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
 	cfg.udata = this;
 	cfg.send = cathedral_send;
 
-	val = config->value("flock");
-	if (val.type() != QJsonValue::String)
-		fatal("no or invalid flock found in configuration");
+	cfg.flock = litany_json_number(config, "flock", ULONG_MAX);
+	if (cfg.flock & 0xff)
+		fatal("flock invalid (contains domain bits)");
 
-	cfg.flock = val.toString().toULongLong(&ok, 16);
-	if (!ok)
-		fatal("invalid flock %s", val.toString().toStdString().c_str());
+	domain = litany_json_number(config, "flock-domain", UCHAR_MAX);
+	cfg.flock |= domain;
 
-	val = config->value("kek-id");
-	if (val.type() != QJsonValue::String)
-		fatal("no or invalid kek-id found in configuration");
-
-	cfg.tunnel = (val.toString().toUShort(&ok, 16) << 8);
-	if (!ok) {
-		fatal("invalid kek-id %s",
-		    val.toString().toStdString().c_str());
-	}
-
+	cfg.tunnel = litany_json_number(config, "kek-id", UCHAR_MAX) << 8;
 	cfg.tunnel |= peer_id.toUShort(&ok, 16);
-	if (!ok)
-		fatal("invalid peer-id %s", peer);
+
+	cfg.identity = litany_json_number(config, "cs-id", UINT_MAX);
 
 	val = config->value("kek-path");
 	if (val.type() != QJsonValue::String)
@@ -93,11 +84,6 @@ Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
 
 	cfg.kek = kek_path;
 
-	val = config->value("cs-id");
-	if (val.type() != QJsonValue::String)
-		fatal("no or invalid cs-id found in configuration");
-
-	cfg.identity = val.toString().toULong(&ok, 16);
 	if (!ok)
 		fatal("invalid cs-id %s", val.toString().toStdString().c_str());
 

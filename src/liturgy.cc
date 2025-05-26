@@ -41,7 +41,7 @@ Liturgy::Liturgy(QObject *parent, QJsonObject *config, int mode)
 	struct kyrka_cathedral_cfg		cfg;
 	QJsonValue				val;
 	char					*path;
-	u_int16_t				domain;
+	u_int8_t				domain;
 
 	PRECOND(parent != NULL);
 	PRECOND(config != NULL);
@@ -58,44 +58,15 @@ Liturgy::Liturgy(QObject *parent, QJsonObject *config, int mode)
 	if (mode == LITURGY_MODE_DISCOVERY)
 		cfg.group = USHRT_MAX;
 
-	val = config->value("flock");
-	if (val.type() != QJsonValue::String)
-		fatal("no or invalid flock found in configuration");
+	cfg.flock = litany_json_number(config, "flock", ULONG_MAX);
+	if (cfg.flock & 0xff)
+		fatal("flock invalid (contains domain bits)");
 
-	cfg.flock = val.toString().toULongLong(&ok, 16);
-	if (!ok || (cfg.flock & 0xff))
-		fatal("invalid flock %s", val.toString().toStdString().c_str());
-
-	val = config->value("flock-domain");
-	if (val.type() != QJsonValue::String)
-		fatal("no or invalid flock-domain in configuration");
-
-	/* XXX - QString does not have a toUChar()? */
-	domain = val.toString().toUShort(&ok, 16);
-	if (!ok || domain > UCHAR_MAX) {
-		fatal("invalid flock-domain %s",
-		    val.toString().toStdString().c_str());
-	}
-
+	domain = litany_json_number(config, "flock-domain", UCHAR_MAX);
 	cfg.flock |= domain;
 
-	val = config->value("kek-id");
-	if (val.type() != QJsonValue::String)
-		fatal("no or invalid kek-id found in configuration");
-
-	cfg.tunnel = val.toString().toUShort(&ok, 16);
-	if (!ok) {
-		fatal("invalid kek-id %s",
-		    val.toString().toStdString().c_str());
-	}
-
-	val = config->value("cs-id");
-	if (val.type() != QJsonValue::String)
-		fatal("no or invalid cs-id found in configuration");
-
-	cfg.identity = val.toString().toULong(&ok, 16);
-	if (!ok)
-		fatal("invalid cs-id %s", val.toString().toStdString().c_str());
+	cfg.tunnel = litany_json_number(config, "kek-id", UCHAR_MAX);
+	cfg.identity = litany_json_number(config, "cs-id", UINT_MAX);
 
 	val = config->value("cs-path");
 	if (val.type() != QJsonValue::String)

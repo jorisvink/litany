@@ -41,6 +41,8 @@
 
 extern QApplication	*app;
 
+u_int64_t	litany_json_number(QJsonObject *, const char *, u_int64_t);
+
 /*
  * A tunnel object, responsible for maintaing a single peer-to-peer
  * and end-to-end encrypted tunnel to a peer using libkyrka.

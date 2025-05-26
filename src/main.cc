@@ -92,6 +92,35 @@ main(int argc, char *argv[])
 	return (ret);
 }
 
+/*
+ * Helper function to convert a JSON string field to a native uint64.
+ */
+u_int64_t
+litany_json_number(QJsonObject *json, const char *field, u_int64_t max)
+{
+	bool		ok;
+	QJsonValue	val;
+	u_int64_t	value;
+
+	PRECOND(json != NULL);
+	PRECOND(field != NULL);
+
+	val = json->value(field);
+	if (val.type() != QJsonValue::String)
+		fatal("no or invalid '%s' found in configuration", field);
+
+	value = val.toString().toULongLong(&ok, 16);
+	if (!ok) {
+		fatal("invalid %s: %s",
+		    field, val.toString().toStdString().c_str());
+	}
+
+	if (value > max)
+		fatal("%s out of range", field);
+
+	return (value);
+}
+
 /* Bad juju happened. */
 void
 fatal(const char *fmt, ...)
