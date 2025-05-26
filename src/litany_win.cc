@@ -41,19 +41,23 @@ LitanyPeer::LitanyPeer(LitanyWindow *parent, u_int8_t id)
 void
 LitanyPeer::show_notification(int onoff)
 {
+	QString		id;
+
 	PRECOND(onoff == 0 || onoff == 1);
+
+	id = QString("%1").arg(peer_id, 2, 16, QLatin1Char('0'));
 
 	if (proc) {
 		setForeground(Qt::green);
-		setText(QString("Peer %1 (chat open)").arg(peer_id));
+		setText(QString("Peer %1 (chat open)").arg(id));
 	} else {
 		if (onoff) {
 			setForeground(Qt::yellow);
-			setText(QString("Peer %1 (chat pending)").arg(peer_id));
+			setText(QString("Peer %1 (chat pending)").arg(id));
 			app->alert(litany);
 		} else {
 			setForeground(Qt::gray);
-			setText(QString("Peer %1").arg(peer_id));
+			setText(QString("Peer %1").arg(id));
 		}
 	}
 }
@@ -122,6 +126,7 @@ LitanyPeer::~LitanyPeer(void)
  */
 LitanyWindow::LitanyWindow(QJsonObject *config)
 {
+	QString			id;
 	QLabel			*label;
 	QWidget			*widget;
 	QBoxLayout		*layout;
@@ -158,8 +163,9 @@ LitanyWindow::LitanyWindow(QJsonObject *config)
 	layout->addWidget(offline);
 
 	for (int i = 1; i < 256; i++) {
+		id = QString("%1").arg(i, 2, 16, QLatin1Char('0'));
 		peers[i] = new LitanyPeer(this, i);
-		peers[i]->setText(QString("Peer %1").arg(i));
+		peers[i]->setText(QString("Peer %1").arg(id));
 		offline->addItem(peers[i]);
 	}
 
