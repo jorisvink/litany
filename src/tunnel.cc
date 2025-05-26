@@ -412,9 +412,8 @@ kyrka_event(KYRKA *ctx, union kyrka_event *evt, void *udata)
 	switch (evt->type) {
 	case KYRKA_EVENT_KEYS_INFO:
 		tunnel->peer_alive();
-		tunnel->system_msg("[tunnel]: tx=%08x rx=%08x (peer=%llx)",
-		    evt->keys.tx_spi, evt->keys.rx_spi,
-		    evt->keys.peer_id);
+		tunnel->system_msg("[tunnel]: tx=%08x rx=%08x",
+		    evt->keys.tx_spi, evt->keys.rx_spi);
 		if (evt->keys.tx_spi != 0 && evt->keys.rx_spi != 0)
 			tunnel->system_msg("[tunnel]: established");
 		break;
