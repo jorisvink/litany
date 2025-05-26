@@ -62,7 +62,7 @@ Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
 	cfg.udata = this;
 	cfg.send = cathedral_send;
 
-	val = config->take("flock");
+	val = config->value("flock");
 	if (val.type() != QJsonValue::String)
 		fatal("no or invalid flock found in configuration");
 
@@ -70,7 +70,7 @@ Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
 	if (!ok)
 		fatal("invalid flock %s", val.toString().toStdString().c_str());
 
-	val = config->take("kek-id");
+	val = config->value("kek-id");
 	if (val.type() != QJsonValue::String)
 		fatal("no or invalid kek-id found in configuration");
 
@@ -84,7 +84,7 @@ Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
 	if (!ok)
 		fatal("invalid peer-id %s", peer);
 
-	val = config->take("kek-path");
+	val = config->value("kek-path");
 	if (val.type() != QJsonValue::String)
 		fatal("no or invalid kek-path found in configuration");
 
@@ -93,7 +93,7 @@ Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
 
 	cfg.kek = kek_path;
 
-	val = config->take("cs-id");
+	val = config->value("cs-id");
 	if (val.type() != QJsonValue::String)
 		fatal("no or invalid cs-id found in configuration");
 
@@ -101,7 +101,7 @@ Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
 	if (!ok)
 		fatal("invalid cs-id %s", val.toString().toStdString().c_str());
 
-	val = config->take("cs-path");
+	val = config->value("cs-path");
 	if (val.type() != QJsonValue::String)
 		fatal("no or invalid cs-path found in configuration");
 
@@ -110,7 +110,7 @@ Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
 
 	cfg.secret = cs_path;
 
-	val = config->take("cathedral");
+	val = config->value("cathedral");
 	if (val.type() != QJsonValue::String)
 		fatal("no or invalid catheral found in configuration");
 
