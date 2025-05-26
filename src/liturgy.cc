@@ -30,7 +30,7 @@ static void	cathedral_send(const void *, size_t, u_int64_t, void *);
  * be made with different peer configurations.
  *
  * The JSON config should contain the following:
- *	flock kek-id cs-id cs-path cathedral:port
+ *	flock flock-domain kek-id cs-id cs-path cathedral:port
  *
  * The liturgy runs either in discovery mode or signaling mode depending
  * on the mode given to the constructor.
@@ -41,6 +41,7 @@ Liturgy::Liturgy(QObject *parent, QJsonObject *config, int mode)
 	struct kyrka_cathedral_cfg		cfg;
 	QJsonValue				val;
 	char					*path;
+	u_int16_t				domain;
 
 	PRECOND(parent != NULL);
 	PRECOND(config != NULL);
@@ -62,8 +63,21 @@ Liturgy::Liturgy(QObject *parent, QJsonObject *config, int mode)
 		fatal("no or invalid flock found in configuration");
 
 	cfg.flock = val.toString().toULongLong(&ok, 16);
-	if (!ok)
+	if (!ok || (cfg.flock & 0xff))
 		fatal("invalid flock %s", val.toString().toStdString().c_str());
+
+	val = config->value("flock-domain");
+	if (val.type() != QJsonValue::String)
+		fatal("no or invalid flock-domain in configuration");
+
+	/* XXX - QString does not have a toUChar()? */
+	domain = val.toString().toUShort(&ok, 16);
+	if (!ok || domain > UCHAR_MAX) {
+		fatal("invalid flock-domain %s",
+		    val.toString().toStdString().c_str());
+	}
+
+	cfg.flock |= domain;
 
 	val = config->value("kek-id");
 	if (val.type() != QJsonValue::String)
