@@ -7,6 +7,8 @@ everything.
 You can have one-to-one conversations or group conversations. With
 group conversations you have tunnels to each participant in the group.
 
+This is a WIP and the UI is wonky, I am not a GUI person.
+
 Double click on a peer to open its chat window (spawned
 as a separate process), your peer needs to do the same right
 now as there is no signaling yet.
