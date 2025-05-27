@@ -86,6 +86,9 @@ GroupChat::GroupChat(QJsonObject *config, const char *group)
 void
 GroupChat::create_message(void)
 {
+	int			i;
+	const char		*ptr;
+	size_t			length;
 	QString			text, full;
 
 	text = input->text();
@@ -95,8 +98,14 @@ GroupChat::create_message(void)
 		message_show(full.toUtf8().data(),
 		    LITANY_MESSAGE_SYSTEM_ID, Qt::white);
 
+		ptr = text.toUtf8().data();
+		length = text.toUtf8().length();
+
 		/* XXX */
-		/* tunnels foreach send */
+		for (i = 0; i < KYRKA_PEERS_PER_FLOCK; i++) {
+			if (tunnels[i] != NULL)
+				tunnels[i]->send_text(ptr, length);
+		}
 
 		input->setText("");
 	}

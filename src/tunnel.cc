@@ -147,6 +147,8 @@ Tunnel::~Tunnel(void)
 {
 	struct litany_msg	*msg;
 
+	printf("tunnel cleanup called\n");
+
 	while ((msg = TAILQ_FIRST(&msgs)) != NULL) {
 		TAILQ_REMOVE(&msgs, msg, list);
 		free(msg);
@@ -507,6 +509,7 @@ heaven_send(const void *data, size_t len, u_int64_t seq, void *udata)
 
 	switch (msg->type) {
 	case LITANY_MESSAGE_TYPE_TEXT:
+		/* XXX - validate text. */
 		tunnel->recv_msg(Qt::gray, msg->id, "<%02x> %.*s",
 		    tunnel->peer_id, (int)msg->len, (const char *)msg->data);
 		tunnel->send_ack(msg->id);
