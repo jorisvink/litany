@@ -178,5 +178,12 @@ GroupChat::peer_set_state(u_int8_t id, int state)
  */
 GroupChat::~GroupChat(void)
 {
-	/* XXX delete all tunnels and liturgy */
+	int		i;
+
+	delete discovery;
+
+	for (i = 0; i < KYRKA_PEERS_PER_FLOCK; i++) {
+		if (tunnels[i] != NULL)
+			delete tunnels[i];
+	}
 }
