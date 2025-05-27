@@ -14,28 +14,39 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef __H_LITANY_H
-#define __H_LITANY_H
+#ifndef __H_LITANY_GROUP_H
+#define __H_LITANY_GROUP_H
 
-#include <sys/types.h>
+#include <QObject>
+#include <QProcess>
 
-#include <QJsonObject>
-#include <QApplication>
+class LitanyWindow;
 
-#include "util.h"
-#include "litany.h"
-#include "tunnel.h"
-#include "liturgy.h"
-#include "peer.h"
-#include "group.h"
-#include "peer_chat.h"
-#include "group_chat.h"
-#include "window.h"
+/*
+ * A group and its accompanying chat window that runs in
+ * a separate process.
+ */
+class LitanyGroup: public QObject {
+	Q_OBJECT
 
-/* src/main.cc */
-extern QApplication	*app;
+public:
+	LitanyGroup(LitanyWindow *, u_int16_t);
+	~LitanyGroup(void);
 
-char		*litany_json_string(QJsonObject *, const char *);
-u_int64_t	litany_json_number(QJsonObject *, const char *, u_int64_t);
+	void		chat_open(void);
+
+private slots:
+	void		chat_close(int);
+
+private:
+	/* The group id we are active in. */
+	u_int16_t	group_id;
+
+	/* The group chat window its process, if running. */
+	QProcess	*proc;
+
+	/* The litany window under which we reside. */
+	LitanyWindow	*litany;
+};
 
 #endif

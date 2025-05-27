@@ -26,104 +26,6 @@
 static QRegularExpression rgroup("^[0-9a-fA-F]{1,4}$");
 
 /*
- * A litany peer, these are added to either the online or offline
- * QListWidget. This exists so we can obtain the peer id in a way
- * that made sense to me.
- */
-LitanyPeer::LitanyPeer(LitanyWindow *parent, u_int8_t id)
-{
-	proc = NULL;
-	peer_id = id;
-	online = false;
-	litany = parent;
-}
-
-/*
- * Enable or disable the notification when another peer is trying to reach us.
- */
-void
-LitanyPeer::show_notification(int onoff)
-{
-	QString		id;
-
-	PRECOND(onoff == 0 || onoff == 1);
-
-	id = QString("%1").arg(peer_id, 2, 16, QLatin1Char('0'));
-
-	if (proc) {
-		setForeground(Qt::green);
-		setText(QString("Peer %1 (chat open)").arg(id));
-	} else {
-		if (onoff) {
-			setForeground(Qt::yellow);
-			setText(QString("Peer %1 (chat pending)").arg(id));
-			app->alert(litany);
-		} else {
-			setForeground(Qt::gray);
-			setText(QString("Peer %1").arg(id));
-		}
-	}
-}
-
-/*
- * Launch the chat window for this peer.
- */
-void
-LitanyPeer::chat_open(void)
-{
-	QString			id;
-	QStringList		nargs;
-	const QStringList	args(QApplication::instance()->arguments());
-
-	if (proc != NULL)
-		return;
-
-	if (config_file != NULL) {
-		nargs.append("-c");
-		nargs.append(QString("%1").arg(config_file));
-	}
-
-	id = QString("0x%1").arg(peer_id, 2, 16, QLatin1Char('0'));
-	nargs.append("chat");
-	nargs.append(id);
-
-	proc = new QProcess(this);
-
-	proc->setProgram(args.at(0));
-	proc->setArguments(nargs);
-
-	connect(proc, &QProcess::finished, this, &LitanyPeer::chat_close);
-	proc->start();
-}
-
-/*
- * The chat window for this peer has closed, turn off signaling to the peer.
- */
-void
-LitanyPeer::chat_close(int exit_status)
-{
-	PRECOND(proc != NULL);
-	(void)exit_status;
-
-	delete proc;
-	proc = NULL;
-
-	litany->signaling_state(peer_id, 0);
-}
-
-/*
- * Cleanup any LitanyPeer resources, we kill the chat process here
- * if its still running.
- */
-LitanyPeer::~LitanyPeer(void)
-{
-	if (proc != NULL)
-		proc->close();
-
-	delete proc;
-}
-
-/*
  * Constructor for the LitanyWindow class.
  * We setup the UI elements here and prepare the online and offline lists.
  */
@@ -178,6 +80,7 @@ LitanyWindow::LitanyWindow(QJsonObject *config)
 
 	button = new QPushButton("JOIN GROUP");
 	layout->addWidget(button);
+	connect(button, &QPushButton::clicked, this, &LitanyWindow::group_open);
 
 	for (int i = 1; i < 256; i++) {
 		id = QString("%1").arg(i, 2, 16, QLatin1Char('0'));
@@ -269,4 +172,21 @@ LitanyWindow::chat_open(QListWidgetItem *item)
 	peer->chat_open();
 
 	signaling->signaling_state(peer->peer_id, 1);
+}
+
+/*
+ * Open the requested group window.
+ */
+void
+LitanyWindow::group_open(void)
+{
+	u_int16_t	id;
+
+	id = group->text().toUShort(NULL, 16);
+	group->setText("");
+
+	if (groups[id] == NULL)
+		groups[id] = new LitanyGroup(this, id);
+
+	groups[id]->chat_open();
 }

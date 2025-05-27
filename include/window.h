@@ -17,11 +17,13 @@
 #ifndef __H_LITANY_WINDOW_H
 #define __H_LITANY_WINDOW_H
 
+#include <QMap>
 #include <QObject>
 #include <QMainWindow>
 #include <QListWidget>
 
 #include "peer.h"
+#include "group.h"
 #include "liturgy.h"
 
 /*
@@ -42,20 +44,23 @@ public:
 	void peer_set_notification(u_int8_t, int) override;
 
 private:
+	void group_open(void);
+
 	/*
 	 * The UI online and offline lists and the LitanyPeers that
 	 * populate said lists.
 	 */
-	QListWidget		*online;
-	QListWidget		*offline;
-	LitanyPeer		*peers[KYRKA_PEERS_PER_FLOCK + 1];
+	QListWidget			*online;
+	QListWidget			*offline;
+	LitanyPeer			*peers[KYRKA_PEERS_PER_FLOCK + 1];
 
-	/* The UI join group input field. */
-	QLineEdit		*group;
+	/* The UI join group input field and list of active groups. */
+	QLineEdit			*group;
+	QMap<int, LitanyGroup *>	groups;
 
 	/* The two liturgies we always have running. */
-	Liturgy			*discovery;
-	Liturgy			*signaling;
+	Liturgy				*discovery;
+	Liturgy				*signaling;
 };
 
 #endif
