@@ -33,11 +33,13 @@ the relevant information for your terminal.
 
 ```
 {
-    "flock": "493abf95a07e0c52",
+    "flock": "493abf95a07e0c00",
     "kek-id": "0d",
-    "kek-path": "493abf95a07e0c52-0x0d/kek-0x0d",
+    "flock-domain": "0b",
+    "flock-domain-group": "0c",
+    "kek-path": "493abf95a07e0c00-0x0d/kek-0x0d",
     "cs-id": "e365d227",
-    "cs-path": "493abf95a07e0c52-0x0d/id-e365d227",
+    "cs-path": "493abf95a07e0c00-0x0d/id-e365d227",
     "cathedral": "ip:port"
 }
 ```
