@@ -78,7 +78,7 @@ GroupChat::GroupChat(QJsonObject *config, const char *group)
 
 	setCentralWidget(widget);
 
-	discovery = new Liturgy(this, config, LITURGY_MODE_DISCOVERY);
+	discovery = new Liturgy(this, config, LITURGY_MODE_DISCOVERY, true);
 }
 
 /*

@@ -191,8 +191,8 @@ LitanyWindow::LitanyWindow(QJsonObject *config)
 
 	setCentralWidget(widget);
 
-	signaling = new Liturgy(this, config, LITURGY_MODE_SIGNAL);
-	discovery = new Liturgy(this, config, LITURGY_MODE_DISCOVERY);
+	signaling = new Liturgy(this, config, LITURGY_MODE_SIGNAL, false);
+	discovery = new Liturgy(this, config, LITURGY_MODE_DISCOVERY, false);
 }
 
 /*
