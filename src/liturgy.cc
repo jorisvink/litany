@@ -18,7 +18,7 @@
 
 #include <stdio.h>
 
-#include "litany_qt.h"
+#include "litany.h"
 
 static void	kyrka_event(KYRKA *, union kyrka_event *, void *);
 static void	cathedral_send(const void *, size_t, u_int64_t, void *);

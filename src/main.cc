@@ -26,7 +26,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 
-#include "litany_qt.h"
+#include "litany.h"
 
 static QJsonObject		*config_load(void);
 
@@ -42,7 +42,7 @@ int
 main(int argc, char *argv[])
 {
 	QMainWindow		*win;
-	LitanyChat		*chat;
+	PeerChat		*chat;
 	QJsonObject		*config;
 	char			**nargv;
 	LitanyWindow		*litany;
@@ -72,7 +72,7 @@ main(int argc, char *argv[])
 			win = (QMainWindow *)litany;
 		} else if (nargc == 2) {
 			if (!strcmp(nargv[0], "chat")) {
-				chat = new LitanyChat(config, nargv[1]);
+				chat = new PeerChat(config, nargv[1]);
 				win = (QMainWindow *)chat;
 			} else {
 				fatal("unknown mode '%s'", nargv[0]);

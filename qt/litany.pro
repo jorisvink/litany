@@ -9,13 +9,18 @@ INCLUDEPATH	+=	include /usr/local/include
 LIBPATH		+=	/usr/local/lib /opt/homebrew/Cellar/libsodium/1.0.20/lib
 LIBS		+=	-lkyrka -lsodium
 
-HEADERS		+=	include/litany_qt.h include/litany.h
+HEADERS		+=	include/litany.h \
+			include/tunnel.h \
+			include/liturgy.h \
+			include/peer.h \
+			include/peer_chat.h \
+			include/window.h \
 
 SOURCES		+=	src/main.cc \
 			src/tunnel.cc \
 			src/liturgy.cc \
-			src/chat_win.cc \
-			src/litany_win.cc \
+			src/peer_chat.cc \
+			src/litany.cc \
 			src/msg.c
 
 QMAKE_CXXFLAGS	+=	-g

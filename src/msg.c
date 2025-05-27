@@ -24,7 +24,7 @@
 #include <string.h>
 #include <time.h>
 
-#include "litany.h"
+#include "util.h"
 
 /* Sequence number for the next registered message. */
 static u_int64_t	seqno = 1;

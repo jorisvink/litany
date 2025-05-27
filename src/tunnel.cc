@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "litany_qt.h"
+#include "litany.h"
 
 static void	kyrka_event(KYRKA *, union kyrka_event *, void *);
 static void	heaven_send(const void *, size_t, u_int64_t, void *);
@@ -309,7 +309,7 @@ Tunnel::recv_msg(Qt::GlobalColor color, u_int64_t id, const char *fmt, ...)
 {
 	int		len;
 	va_list		args;
-	LitanyChat	*chat;
+	PeerChat	*chat;
 	char		buf[2048];
 
 	PRECOND(fmt != NULL);
@@ -322,7 +322,7 @@ Tunnel::recv_msg(Qt::GlobalColor color, u_int64_t id, const char *fmt, ...)
 	if (len == -1 || (size_t)len >= sizeof(buf))
 		fatal("message did not fit");
 
-	chat = (LitanyChat *)owner;
+	chat = (PeerChat *)owner;
 	chat->message_show(buf, id, color);
 }
 
@@ -442,7 +442,7 @@ Tunnel::system_msg(const char *fmt, ...)
 {
 	int		len;
 	va_list		args;
-	LitanyChat	*chat;
+	PeerChat	*chat;
 	char		buf[2048];
 
 	PRECOND(fmt != NULL);
@@ -454,7 +454,7 @@ Tunnel::system_msg(const char *fmt, ...)
 	if (len == -1 || (size_t)len >= sizeof(buf))
 		fatal("message did not fit");
 
-	chat = (LitanyChat *)owner;
+	chat = (PeerChat *)owner;
 	chat->message_show(buf, LITANY_MESSAGE_SYSTEM_ID, Qt::yellow);
 }
 

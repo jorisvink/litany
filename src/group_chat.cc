@@ -17,13 +17,13 @@
 #include <QBoxLayout>
 #include <QEvent>
 
-#include "litany_qt.h"
+#include "litany.h"
 
 /*
- * A window that maintains a chat with one peer. We have a sanctum
- * tunnel towards said peer using libkyrka.
+ * A window that maintains a liturgy and several tunnels to several
+ * different group peers.
  */
-LitanyChat::LitanyChat(QJsonObject *config, const char *peer)
+GroupChat::GroupChat(QJsonObject *config, const char *peer)
 {
 	u_int8_t	id;
 	QWidget		*widget;
@@ -52,7 +52,7 @@ LitanyChat::LitanyChat(QJsonObject *config, const char *peer)
 	input->setStyleSheet("color: #fff;");
 
 	connect(input,
-	    &QLineEdit::returnPressed, this, &LitanyChat::create_message);
+	    &QLineEdit::returnPressed, this, &GroupChat::create_message);
 
 	model = new QStandardItemModel(this);
 	model->insertColumn(0);
@@ -78,10 +78,10 @@ LitanyChat::LitanyChat(QJsonObject *config, const char *peer)
 
 /*
  * Signal for returnPressed() on the line input. We format the message
- * display it locally and send it to our peer over the tunnel.
+ * display it locally and send it to all peers.
  */
 void
-LitanyChat::create_message(void)
+GroupChat::create_message(void)
 {
 	QString			text, full;
 
@@ -101,7 +101,7 @@ LitanyChat::create_message(void)
  * the message did not yet exist in the model itself.
  */
 void
-LitanyChat::message_show(const char *msg, u_int64_t id, Qt::GlobalColor color)
+GroupChat::message_show(const char *msg, u_int64_t id, Qt::GlobalColor color)
 {
 	QVariant		val;
 	qulonglong		qid;
@@ -145,7 +145,7 @@ LitanyChat::message_show(const char *msg, u_int64_t id, Qt::GlobalColor color)
 /*
  * Destructor, we cleanup any resources.
  */
-LitanyChat::~LitanyChat(void)
+GroupChat::~GroupChat(void)
 {
 	delete tunnel;
 }

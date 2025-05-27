@@ -14,26 +14,42 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef __H_LITANY_H
-#define __H_LITANY_H
+#ifndef __H_LITANY_PEER_H
+#define __H_LITANY_PEER_H
 
-#include <sys/types.h>
+#include <QObject>
+#include <QProcess>
+#include <QListWidgetItem>
 
-#include <QJsonObject>
-#include <QApplication>
+class LitanyWindow;
 
-#include "util.h"
-#include "litany.h"
-#include "tunnel.h"
-#include "liturgy.h"
-#include "peer.h"
-#include "peer_chat.h"
-#include "window.h"
+/*
+ * An entry in the online or offline lists in the LitanyWindow,
+ * together with the identifier for the peer and an attached
+ * chat process (if any).
+ */
+class LitanyPeer: public QObject, public QListWidgetItem {
+	Q_OBJECT
 
-/* src/main.cc */
-extern QApplication	*app;
+public:
+	LitanyPeer(LitanyWindow *, u_int8_t);
+	~LitanyPeer(void);
 
-char		*litany_json_string(QJsonObject *, const char *);
-u_int64_t	litany_json_number(QJsonObject *, const char *, u_int64_t);
+	bool		online;
+	u_int8_t	peer_id;
+
+	void		chat_open(void);
+	void		show_notification(int);
+
+private slots:
+	void		chat_close(int);
+
+private:
+	/* The chat window its process, if running. */
+	QProcess	*proc;
+
+	/* The litany window under which we reside. */
+	LitanyWindow	*litany;
+};
 
 #endif

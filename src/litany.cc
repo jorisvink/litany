@@ -20,7 +20,10 @@
 #include <QPushButton>
 #include <QApplication>
 
-#include "litany_qt.h"
+#include "litany.h"
+
+/* Group regex validator. */
+static QRegularExpression rgroup("^[0-9a-fA-F]{1,4}$");
 
 /*
  * A litany peer, these are added to either the online or offline
@@ -130,6 +133,7 @@ LitanyWindow::LitanyWindow(QJsonObject *config)
 	QLabel			*label;
 	QWidget			*widget;
 	QBoxLayout		*layout;
+	QPushButton		*button;
 
 	PRECOND(config != NULL);
 
@@ -161,6 +165,19 @@ LitanyWindow::LitanyWindow(QJsonObject *config)
 	label->setStyleSheet("color: white");
 	layout->addWidget(label);
 	layout->addWidget(offline);
+
+	label = new QLabel(widget);
+	label->setText("Group");
+	label->setStyleSheet("color: white");
+	layout->addWidget(label);
+
+	group = new QLineEdit(widget);
+	group->setStyleSheet("color: white");
+	group->setValidator(new QRegularExpressionValidator(rgroup, group));
+	layout->addWidget(group);
+
+	button = new QPushButton("JOIN GROUP");
+	layout->addWidget(button);
 
 	for (int i = 1; i < 256; i++) {
 		id = QString("%1").arg(i, 2, 16, QLatin1Char('0'));

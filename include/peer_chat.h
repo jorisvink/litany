@@ -14,26 +14,44 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef __H_LITANY_H
-#define __H_LITANY_H
+#ifndef __H_LITANY_PEER_CHAT_H
+#define __H_LITANY_PEER_CHAT_H
 
-#include <sys/types.h>
+#include <QObject>
+#include <QListView>
+#include <QLineEdit>
+#include <QMainWindow>
+#include <QStandardItemModel>
 
-#include <QJsonObject>
-#include <QApplication>
-
-#include "util.h"
-#include "litany.h"
 #include "tunnel.h"
-#include "liturgy.h"
-#include "peer.h"
-#include "peer_chat.h"
-#include "window.h"
 
-/* src/main.cc */
-extern QApplication	*app;
+/*
+ * A litany chat, a new window that maintains a tunnel to the peer
+ * on the other side and allows end-to-end encrypted communication.
+ */
+class PeerChat: public QMainWindow {
+	Q_OBJECT
 
-char		*litany_json_string(QJsonObject *, const char *);
-u_int64_t	litany_json_number(QJsonObject *, const char *, u_int64_t);
+public:
+	PeerChat(QJsonObject *, const char *);
+	~PeerChat(void);
+
+	void message_show(const char *, u_int64_t, Qt::GlobalColor);
+
+private slots:
+	void create_message(void);
+
+private:
+	/* GUI stuff. */
+	QListView			*view;
+	QLineEdit			*input;
+	QStandardItemModel		*model;
+
+	/* Our own id in the flock (kek-id). */
+	QString				kek_id;
+
+	/* * The libkyrka tunnel object handling our encrypted transport. */
+	Tunnel				*tunnel;
+};
 
 #endif
