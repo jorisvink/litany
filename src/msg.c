@@ -26,6 +26,7 @@
 
 #include "util.h"
 
+/* We can use libnyfe because its included in libkyrka. */
 void	nyfe_random_init(void);
 void	nyfe_random_bytes(void *, size_t);
 
