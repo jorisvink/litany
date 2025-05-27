@@ -53,7 +53,8 @@ TunnelInterface::message_show(const char *msg, u_int64_t id,
  * The JSON config should contain the following:
  *	flock kek-id kek-path cs-id cs-path cathedral:port
  */
-Tunnel::Tunnel(TunnelInterface *obj, QJsonObject *config, u_int8_t peer)
+Tunnel::Tunnel(TunnelInterface *obj, QJsonObject *config,
+    u_int8_t peer, bool group)
 {
 	bool					ok;
 	struct kyrka_cathedral_cfg		cfg;
@@ -78,11 +79,19 @@ Tunnel::Tunnel(TunnelInterface *obj, QJsonObject *config, u_int8_t peer)
 	if (cfg.flock & 0xff)
 		fatal("flock invalid (contains domain bits)");
 
+	if (group) {
+		cfg.flock |= litany_json_number(config,
+		    "flock-domain-group", UCHAR_MAX);
+	} else {
+		cfg.flock |= litany_json_number(config,
+		    "flock-domain", UCHAR_MAX);
+	}
+
+	cfg.identity = litany_json_number(config, "cs-id", UINT_MAX);
 	cfg.tunnel = litany_json_number(config, "kek-id", UCHAR_MAX) << 8;
 	cfg.tunnel |= peer_id;
 
-	cfg.identity = litany_json_number(config, "cs-id", UINT_MAX);
-	cfg.flock |= litany_json_number(config, "flock-domain", UCHAR_MAX);
+	printf("flock: %lx, tunnel: %04x\n", cfg.flock, cfg.tunnel);
 
 	cs_path = litany_json_string(config, "cs-path");
 	kek_path = litany_json_string(config, "kek-path");

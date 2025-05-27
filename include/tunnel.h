@@ -42,7 +42,7 @@ class Tunnel: public QObject {
 	Q_OBJECT
 
 public:
-	Tunnel(TunnelInterface *, QJsonObject *, u_int8_t);
+	Tunnel(TunnelInterface *, QJsonObject *, u_int8_t, bool);
 	~Tunnel(void);
 
 	void send_heartbeat(void);

@@ -164,7 +164,7 @@ void
 GroupChat::peer_set_state(u_int8_t id, int state)
 {
 	if (tunnels[id] == NULL && state == 1) {
-		tunnels[id] = new Tunnel(this, tunnel_config, id);
+		tunnels[id] = new Tunnel(this, tunnel_config, id, true);
 	}
 
 	if (tunnels[id] != NULL && state == 0) {
