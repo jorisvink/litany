@@ -26,8 +26,29 @@
 
 #include "util.h"
 
-/* Sequence number for the next registered message. */
-static u_int64_t	seqno = 1;
+void	nyfe_random_init(void);
+void	nyfe_random_bytes(void *, size_t);
+
+/* The message number for the next registered message. */
+static u_int64_t	msgno = 1;
+
+/*
+ * Set the message number to include the given peer id in the highest
+ * bits and a set of 32 random bits following that.
+ *
+ * Note that this message number has nothing to do with the encrypted
+ * packet its sequence number at all.
+ */
+void
+litany_msg_number_reset(u_int8_t peer)
+{
+	u_int32_t	rand;
+
+	nyfe_random_init();
+	nyfe_random_bytes(&rand, sizeof(rand));
+
+	msgno = ((u_int64_t)peer << 56) | ((u_int64_t)rand << 24) | 1;
+}
 
 /*
  * Register a new message on the given list.
@@ -47,7 +68,7 @@ litany_msg_register(struct litany_msg_list *list, const void *data, size_t len)
 
 	(void)clock_gettime(CLOCK_MONOTONIC, &ts);
 
-	msg->id = seqno;
+	msg->id = msgno;
 	msg->age = ts.tv_sec;
 	memcpy(msg->data.data, data, len);
 
@@ -56,13 +77,13 @@ litany_msg_register(struct litany_msg_list *list, const void *data, size_t len)
 	msg->data.type = LITANY_MESSAGE_TYPE_TEXT;
 
 	TAILQ_INSERT_TAIL(list, msg, list);
-	seqno++;
+	msgno++;
 
 	return (msg);
 }
 
 /*
- * Remove a message that matches the given ack sequence number from the list.
+ * Remove a message that matches the given ack message number from the list.
  */
 void
 litany_msg_ack(struct litany_msg_list *list, u_int64_t ack)

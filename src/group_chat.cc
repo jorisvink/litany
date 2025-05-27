@@ -34,8 +34,10 @@ GroupChat::GroupChat(QJsonObject *config, const char *group)
 
 	memset(tunnels, 0, sizeof(tunnels));
 
-	tunnel_config = config;
 	id = litany_json_number(config, "kek-id", UCHAR_MAX) & 0xff;
+	litany_msg_number_reset(id);
+
+	tunnel_config = config;
 	kek_id = QString("%1").arg(id, 2, 16, QLatin1Char('0'));
 
 	setWindowTitle(QString("Litany - Group %1").arg(group));
@@ -87,8 +89,6 @@ void
 GroupChat::create_message(void)
 {
 	int			i;
-	const char		*ptr;
-	size_t			length;
 	QString			text, full;
 
 	text = input->text();
@@ -98,13 +98,12 @@ GroupChat::create_message(void)
 		message_show(full.toUtf8().data(),
 		    LITANY_MESSAGE_SYSTEM_ID, Qt::white);
 
-		ptr = text.toUtf8().data();
-		length = text.toUtf8().length();
-
 		/* XXX */
 		for (i = 0; i < KYRKA_PEERS_PER_FLOCK; i++) {
-			if (tunnels[i] != NULL)
-				tunnels[i]->send_text(ptr, length);
+			if (tunnels[i] != NULL) {
+				tunnels[i]->send_text(text.toUtf8().data(),
+				    text.toUtf8().length());
+			}
 		}
 
 		input->setText("");
@@ -166,13 +165,11 @@ GroupChat::peer_set_state(u_int8_t id, int state)
 {
 	if (tunnels[id] == NULL && state == 1) {
 		tunnels[id] = new Tunnel(this, tunnel_config, id);
-		printf("%02x discovered\n", id);
 	}
 
 	if (tunnels[id] != NULL && state == 0) {
 		delete tunnels[id];
 		tunnels[id] = NULL;
-		printf("%02x offline\n", id);
 	}
 }
 

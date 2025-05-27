@@ -34,6 +34,8 @@ PeerChat::PeerChat(QJsonObject *config, const char *peer)
 	PRECOND(peer != NULL);
 
 	id = litany_json_number(config, "kek-id", UCHAR_MAX) & 0xff;
+	litany_msg_number_reset(id);
+
 	kek_id = QString("%1").arg(id, 2, 16, QLatin1Char('0'));
 
 	setWindowTitle(QString("Litany - Chat with %1").arg(peer));

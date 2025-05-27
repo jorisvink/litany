@@ -78,6 +78,7 @@ extern const char	*config_file;
 void			fatal(const char *, ...) __attribute__((noreturn));
 
 /* src/msg.c */
+void	litany_msg_number_reset(u_int8_t);
 void	litany_msg_ack(struct litany_msg_list *, u_int64_t);
 
 struct litany_msg	*litany_msg_register(struct litany_msg_list *,
