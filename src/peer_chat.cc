@@ -26,9 +26,9 @@
  */
 PeerChat::PeerChat(QJsonObject *config, const char *peer)
 {
-	u_int8_t	id;
 	QWidget		*widget;
 	QBoxLayout	*layout;
+	u_int8_t	id, peer_id;
 
 	PRECOND(config != NULL);
 	PRECOND(peer != NULL);
@@ -74,7 +74,8 @@ PeerChat::PeerChat(QJsonObject *config, const char *peer)
 
 	setCentralWidget(widget);
 
-	tunnel = new Tunnel(config, peer, this);
+	peer_id = QString(peer).toUShort() & 0xff;
+	tunnel = new Tunnel(this, config, peer_id);
 }
 
 /*

@@ -14,28 +14,32 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef __H_LITANY_PEER_CHAT_H
-#define __H_LITANY_PEER_CHAT_H
+#ifndef __H_LITANY_GROUP_CHAT_H
+#define __H_LITANY_GROUP_CHAT_H
 
+#include <QList>
 #include <QObject>
 #include <QListView>
 #include <QLineEdit>
+#include <QJsonObject>
 #include <QMainWindow>
 #include <QStandardItemModel>
 
 #include "tunnel.h"
+#include "liturgy.h"
 
 /*
- * A litany chat, a new window that maintains a tunnel to the peer
- * on the other side and allows end-to-end encrypted communication.
+ * A group chat with tunnels to many peers.
  */
-class PeerChat: public QMainWindow, public TunnelInterface {
+class GroupChat: public QMainWindow,
+    public LiturgyInterface, public TunnelInterface {
 	Q_OBJECT
 
 public:
-	PeerChat(QJsonObject *, const char *);
-	~PeerChat(void);
+	GroupChat(QJsonObject *, const char *);
+	~GroupChat(void);
 
+	void peer_set_state(u_int8_t, int) override;
 	void message_show(const char *, u_int64_t, Qt::GlobalColor) override;
 
 private slots:
@@ -50,8 +54,14 @@ private:
 	/* Our own id in the flock (kek-id). */
 	QString				kek_id;
 
-	/* * The libkyrka tunnel object handling our encrypted transport. */
-	Tunnel				*tunnel;
+	/* The configuration. */
+	QJsonObject			*tunnel_config;
+
+	/* The discovery liturgy. */
+	Liturgy				*discovery;
+
+	/* A tunnel per participant. */
+	Tunnel				*tunnels[KYRKA_PEERS_PER_FLOCK];
 };
 
 #endif

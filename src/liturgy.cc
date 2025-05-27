@@ -24,6 +24,28 @@ static void	kyrka_event(KYRKA *, union kyrka_event *, void *);
 static void	cathedral_send(const void *, size_t, u_int64_t, void *);
 
 /*
+ * The functions the classes that inherit from LiturgyInterface
+ * must re-implement. We just fatal in these to draw attention to it.
+ */
+void
+LiturgyInterface::peer_set_state(u_int8_t id, int state)
+{
+	(void)id;
+	(void)state;
+
+	fatal("LiturgyInterface::peer_set_state not overridden");
+}
+
+void
+LiturgyInterface::peer_set_notification(u_int8_t id, int state)
+{
+	(void)id;
+	(void)state;
+
+	fatal("LiturgyInterface::peer_set_notification not overridden");
+}
+
+/*
  * Setup a liturgy with the given parameters.
  *
  * This is entirely self-contained, multiple liturgies could technically
@@ -35,7 +57,7 @@ static void	cathedral_send(const void *, size_t, u_int64_t, void *);
  * The liturgy runs either in discovery mode or signaling mode depending
  * on the mode given to the constructor.
  */
-Liturgy::Liturgy(QObject *parent, QJsonObject *config, int mode)
+Liturgy::Liturgy(LiturgyInterface *parent, QJsonObject *config, int mode)
 {
 	bool					ok;
 	struct kyrka_cathedral_cfg		cfg;
@@ -85,7 +107,7 @@ Liturgy::Liturgy(QObject *parent, QJsonObject *config, int mode)
 
 	free(path);
 	runmode = mode;
-	litany = parent;
+	owner = parent;
 
 	memset(signaling, 0, sizeof(signaling));
 
@@ -176,27 +198,27 @@ Liturgy::socket_send(const void *data, size_t len)
 static void
 kyrka_event(KYRKA *ctx, union kyrka_event *evt, void *udata)
 {
-	u_int8_t	idx;
-	LitanyWindow	*litany;
-	Liturgy		*liturgy;
+	u_int8_t		idx;
+	LiturgyInterface	*owner;
+	Liturgy			*liturgy;
 
 	PRECOND(ctx != NULL);
 	PRECOND(evt != NULL);
 	PRECOND(udata != NULL);
 
 	liturgy = (Liturgy *)udata;
-	litany = (LitanyWindow *)liturgy->litany;
+	owner = (LiturgyInterface *)liturgy->owner;
 
 	switch (evt->type) {
 	case KYRKA_EVENT_LITURGY_RECEIVED:
 		if (liturgy->runmode == LITURGY_MODE_DISCOVERY) {
 			for (idx = 1; idx < KYRKA_PEERS_PER_FLOCK; idx++) {
-				litany->peer_set_state(idx,
+				owner->peer_set_state(idx,
 				    evt->liturgy.peers[idx]);
 			}
 		} else {
 			for (idx = 1; idx < KYRKA_PEERS_PER_FLOCK; idx++) {
-				litany->peer_set_notification(idx,
+				owner->peer_set_notification(idx,
 				    evt->liturgy.peers[idx]);
 			}
 		}

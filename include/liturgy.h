@@ -25,6 +25,15 @@
 #include <libkyrka/libkyrka.h>
 
 /*
+ * The interface objects wanting to use liturgies must adhere too.
+ */
+class LiturgyInterface {
+public:
+	virtual void peer_set_state(u_int8_t, int);
+	virtual void peer_set_notification(u_int8_t, int);
+};
+
+/*
  * The liturgy, which can be run in either one of two modes:
  *	1) discovery mode for discovering what peers are available and
  *	   updates the list inside of the LitanyWindow.
@@ -37,14 +46,14 @@ class Liturgy: public QObject {
 	Q_OBJECT
 
 public:
-	Liturgy(QObject *, QJsonObject *, int);
+	Liturgy(LiturgyInterface *, QJsonObject *, int);
 	~Liturgy(void);
 
 	void signaling_state(u_int8_t, int);
 	void socket_send(const void *, size_t);
 
-	void		*litany;
-	int		runmode;
+	LiturgyInterface	*owner;
+	int			runmode;
 
 private slots:
 	void packet_read(void);

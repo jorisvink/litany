@@ -42,10 +42,8 @@ int
 main(int argc, char *argv[])
 {
 	QMainWindow		*win;
-	PeerChat		*chat;
 	QJsonObject		*config;
 	char			**nargv;
-	LitanyWindow		*litany;
 	int			ch, ret, nargc;
 
 	config_file = NULL;
@@ -68,12 +66,12 @@ main(int argc, char *argv[])
 		config = config_load();
 
 		if (nargc == 0) {
-			litany = new LitanyWindow(config);
-			win = (QMainWindow *)litany;
+			win = new LitanyWindow(config);
 		} else if (nargc == 2) {
 			if (!strcmp(nargv[0], "chat")) {
-				chat = new PeerChat(config, nargv[1]);
-				win = (QMainWindow *)chat;
+				win = new PeerChat(config, nargv[1]);
+			} else if (!strcmp(nargv[0], "group")) {
+				win = new GroupChat(config, nargv[1]);
 			} else {
 				fatal("unknown mode '%s'", nargv[0]);
 			}

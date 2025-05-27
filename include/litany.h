@@ -28,6 +28,7 @@
 #include "liturgy.h"
 #include "peer.h"
 #include "peer_chat.h"
+#include "group_chat.h"
 #include "window.h"
 
 /* src/main.cc */

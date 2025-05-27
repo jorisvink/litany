@@ -28,7 +28,7 @@
  * The main Litany window class, showing the list of online and offline
  * peers and interaction with them.
  */
-class LitanyWindow: public QMainWindow {
+class LitanyWindow: public QMainWindow, public LiturgyInterface {
 	Q_OBJECT
 
 public:
@@ -38,8 +38,8 @@ public:
 	void chat_open(QListWidgetItem *);
 	void signaling_state(u_int8_t, int);
 
-	void peer_set_state(u_int8_t, int);
-	void peer_set_notification(u_int8_t, int);
+	void peer_set_state(u_int8_t, int) override;
+	void peer_set_notification(u_int8_t, int) override;
 
 private:
 	/*

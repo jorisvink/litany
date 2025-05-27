@@ -23,19 +23,22 @@
  * A window that maintains a liturgy and several tunnels to several
  * different group peers.
  */
-GroupChat::GroupChat(QJsonObject *config, const char *peer)
+GroupChat::GroupChat(QJsonObject *config, const char *group)
 {
 	u_int8_t	id;
 	QWidget		*widget;
 	QBoxLayout	*layout;
 
 	PRECOND(config != NULL);
-	PRECOND(peer != NULL);
+	PRECOND(group != NULL);
 
+	memset(tunnels, 0, sizeof(tunnels));
+
+	tunnel_config = config;
 	id = litany_json_number(config, "kek-id", UCHAR_MAX) & 0xff;
 	kek_id = QString("%1").arg(id, 2, 16, QLatin1Char('0'));
 
-	setWindowTitle(QString("Litany - Chat with %1").arg(peer));
+	setWindowTitle(QString("Litany - Group %1").arg(group));
 	setGeometry(100, 100, 500, 400);
 	setStyleSheet("background-color: #101010");
 
@@ -45,7 +48,7 @@ GroupChat::GroupChat(QJsonObject *config, const char *peer)
 	input = new QLineEdit(widget);
 	input->setFixedHeight(25);
 	input->setMinimumWidth(400);
-	input->setPlaceholderText(QString("Message to %1").arg(peer));
+	input->setPlaceholderText("Write a message ...");
 
 	input->setStyleSheet("background-color: #808080;");
 	input->setStyleSheet("font-size: 24px;");
@@ -73,7 +76,7 @@ GroupChat::GroupChat(QJsonObject *config, const char *peer)
 
 	setCentralWidget(widget);
 
-	tunnel = new Tunnel(config, peer, this);
+	discovery = new Liturgy(this, config, LITURGY_MODE_DISCOVERY);
 }
 
 /*
@@ -91,7 +94,10 @@ GroupChat::create_message(void)
 		full = QString("<%1> %2").arg(kek_id).arg(text);
 		message_show(full.toUtf8().data(),
 		    LITANY_MESSAGE_SYSTEM_ID, Qt::white);
-		tunnel->send_text(text.toUtf8().data(), text.toUtf8().length());
+
+		/* XXX */
+		/* tunnels foreach send */
+
 		input->setText("");
 	}
 }
@@ -143,9 +149,28 @@ GroupChat::message_show(const char *msg, u_int64_t id, Qt::GlobalColor color)
 }
 
 /*
+ * A peer might be discovered, check if we need to update its state
+ * and potentially stop/start its tunnel.
+ */
+void
+GroupChat::peer_set_state(u_int8_t id, int state)
+{
+	if (tunnels[id] == NULL && state == 1) {
+		tunnels[id] = new Tunnel(this, tunnel_config, id);
+		printf("%02x discovered\n", id);
+	}
+
+	if (tunnels[id] != NULL && state == 0) {
+		delete tunnels[id];
+		tunnels[id] = NULL;
+		printf("%02x offline\n", id);
+	}
+}
+
+/*
  * Destructor, we cleanup any resources.
  */
 GroupChat::~GroupChat(void)
 {
-	delete tunnel;
+	/* XXX delete all tunnels and liturgy */
 }

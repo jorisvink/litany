@@ -12,6 +12,7 @@ LIBS		+=	-lkyrka -lsodium
 HEADERS		+=	include/litany.h \
 			include/tunnel.h \
 			include/liturgy.h \
+			include/group_chat.h \
 			include/peer.h \
 			include/peer_chat.h \
 			include/window.h \
@@ -19,6 +20,7 @@ HEADERS		+=	include/litany.h \
 SOURCES		+=	src/main.cc \
 			src/tunnel.cc \
 			src/liturgy.cc \
+			src/group_chat.cc \
 			src/peer_chat.cc \
 			src/litany.cc \
 			src/msg.c

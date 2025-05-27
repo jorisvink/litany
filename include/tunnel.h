@@ -27,6 +27,14 @@
 #include "util.h"
 
 /*
+ * The interface objects wanting to use tunnels must adhere too.
+ */
+class TunnelInterface {
+public:
+	virtual void message_show(const char *, u_int64_t, Qt::GlobalColor);
+};
+
+/*
  * A tunnel object, responsible for maintaing a single peer-to-peer
  * and end-to-end encrypted tunnel to a peer using libkyrka.
  */
@@ -34,7 +42,7 @@ class Tunnel: public QObject {
 	Q_OBJECT
 
 public:
-	Tunnel(QJsonObject *, const char *, QObject *);
+	Tunnel(TunnelInterface *, QJsonObject *, u_int8_t);
 	~Tunnel(void);
 
 	void send_heartbeat(void);
@@ -71,8 +79,8 @@ private:
 	quint16			cathedral_port;
 	QHostAddress		cathedral_address;
 
-	/* The PeerChat that owns us. */
-	QObject			*owner;
+	/* The interface that manages us. */
+	TunnelInterface		*owner;
 
 	/* The underlying libkyrka context to maintain tunnel state. */
 	KYRKA			*kyrka;

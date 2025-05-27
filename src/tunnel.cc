@@ -31,6 +31,20 @@ static void	purgatory_send(const void *, size_t, u_int64_t, void *);
 static void	cathedral_send(const void *, size_t, u_int64_t, void *);
 
 /*
+ * The message_show() function that consumers must re-implement.
+ */
+void
+TunnelInterface::message_show(const char *msg, u_int64_t id,
+    Qt::GlobalColor color)
+{
+	(void)msg;
+	(void)id;
+	(void)color;
+
+	fatal("TunnelInterface::message_show not overriden");
+}
+
+/*
  * Setup a tunnel to the given target.
  *
  * This is entirely self-contained, multiple tunnel objects
@@ -39,26 +53,23 @@ static void	cathedral_send(const void *, size_t, u_int64_t, void *);
  * The JSON config should contain the following:
  *	flock kek-id kek-path cs-id cs-path cathedral:port
  */
-Tunnel::Tunnel(QJsonObject *config, const char *peer, QObject *obj)
+Tunnel::Tunnel(TunnelInterface *obj, QJsonObject *config, u_int8_t peer)
 {
 	bool					ok;
 	struct kyrka_cathedral_cfg		cfg;
 	QJsonValue				val;
-	QString					tmp;
 	char					*kek_path, *cs_path;
 
-	PRECOND(config != NULL);
-	PRECOND(peer != NULL);
 	PRECOND(obj != NULL);
+	PRECOND(config != NULL);
 
 	if ((kyrka = kyrka_ctx_alloc(kyrka_event, this)) == NULL)
 		fatal("failed to create kyrka event");
 
 	memset(&cfg, 0, sizeof(cfg));
 
-	tmp = peer;
 	owner = obj;
-	peer_id = tmp.toUShort(&ok, 16) & 0xff;
+	peer_id = peer;
 
 	cfg.udata = this;
 	cfg.send = cathedral_send;
@@ -307,10 +318,10 @@ Tunnel::send_msg(struct litany_msg_data *msg)
 void
 Tunnel::recv_msg(Qt::GlobalColor color, u_int64_t id, const char *fmt, ...)
 {
-	int		len;
-	va_list		args;
-	PeerChat	*chat;
-	char		buf[2048];
+	int			len;
+	va_list			args;
+	TunnelInterface		*ifc;
+	char			buf[2048];
 
 	PRECOND(fmt != NULL);
 	PRECOND(id != LITANY_MESSAGE_SYSTEM_ID);
@@ -322,8 +333,8 @@ Tunnel::recv_msg(Qt::GlobalColor color, u_int64_t id, const char *fmt, ...)
 	if (len == -1 || (size_t)len >= sizeof(buf))
 		fatal("message did not fit");
 
-	chat = (PeerChat *)owner;
-	chat->message_show(buf, id, color);
+	ifc = (TunnelInterface *)owner;
+	ifc->message_show(buf, id, color);
 }
 
 /*
@@ -440,10 +451,10 @@ kyrka_event(KYRKA *ctx, union kyrka_event *evt, void *udata)
 void
 Tunnel::system_msg(const char *fmt, ...)
 {
-	int		len;
-	va_list		args;
-	PeerChat	*chat;
-	char		buf[2048];
+	int			len;
+	va_list			args;
+	TunnelInterface		*ifc;
+	char			buf[2048];
 
 	PRECOND(fmt != NULL);
 
@@ -454,8 +465,8 @@ Tunnel::system_msg(const char *fmt, ...)
 	if (len == -1 || (size_t)len >= sizeof(buf))
 		fatal("message did not fit");
 
-	chat = (PeerChat *)owner;
-	chat->message_show(buf, LITANY_MESSAGE_SYSTEM_ID, Qt::yellow);
+	ifc = (TunnelInterface *)owner;
+	ifc->message_show(buf, LITANY_MESSAGE_SYSTEM_ID, Qt::yellow);
 }
 
 /*
