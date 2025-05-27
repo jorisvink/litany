@@ -4,16 +4,15 @@ Essentially E2EE and P2P chat using the sanctum protocol, wrapped
 in a Qt application because people dislike my terminal approach to
 everything.
 
-The basics work, but this is very much WIP.
+You can have one-to-one conversations or group conversations. With
+group conversations you have tunnels to each participant in the group.
 
-As it stands right now you can see the list of all peers that
-are online due to the fact that it uses a liturgy underneath.
-
-You can double click on a peer to open its chat window (spawned
+Double click on a peer to open its chat window (spawned
 as a separate process), your peer needs to do the same right
 now as there is no signaling yet.
 
 Messages are limited to 512 bytes each.
+
 Messages are resent if a peer does not ACK a message after 5 seconds.
 
 ## Building
