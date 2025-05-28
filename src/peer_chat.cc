@@ -140,8 +140,8 @@ PeerChat::message_show(const char *msg, u_int64_t id, Qt::GlobalColor color)
 
 	model->setData(index, msg);
 	model->setData(index, qid, Qt::UserRole);
-	model->setData(index, Qt::AlignLeft, Qt::TextAlignmentRole);
 	model->setData(index, QBrush(color), Qt::ForegroundRole);
+	model->setData(index, Qt::AlignLeft, Qt::TextAlignmentRole);
 
 	view->scrollToBottom();
 }
