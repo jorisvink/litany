@@ -54,14 +54,14 @@ LiturgyInterface::peer_set_notification(u_int8_t id, int state)
  * The JSON config should contain the following:
  *	flock flock-domain kek-id cs-id cs-path cathedral:port
  *
- * If group is true, it will look at flock-domain-group instead of the
+ * If group is non 0, it will look at flock-domain-group instead of the
  * flock-domain parameter.
  *
  * The liturgy runs either in discovery mode or signaling mode depending
  * on the mode given to the constructor.
  */
 Liturgy::Liturgy(LiturgyInterface *parent, QJsonObject *config,
-    int mode, bool group)
+    int mode, u_int16_t group)
 {
 	bool					ok;
 	struct kyrka_cathedral_cfg		cfg;
@@ -80,9 +80,6 @@ Liturgy::Liturgy(LiturgyInterface *parent, QJsonObject *config,
 	cfg.udata = this;
 	cfg.send = cathedral_send;
 
-	if (mode == LITURGY_MODE_DISCOVERY)
-		cfg.group = USHRT_MAX;
-
 	cfg.flock = litany_json_number(config, "flock", ULONG_MAX);
 	if (cfg.flock & 0xff)
 		fatal("flock invalid (contains domain bits)");
@@ -91,11 +88,14 @@ Liturgy::Liturgy(LiturgyInterface *parent, QJsonObject *config,
 	cfg.identity = litany_json_number(config, "cs-id", UINT_MAX);
 
 	if (group) {
+		cfg.group = group;
 		cfg.flock |= litany_json_number(config,
 		    "flock-domain-group", UCHAR_MAX);
 	} else {
 		cfg.flock |= litany_json_number(config,
 		    "flock-domain", UCHAR_MAX);
+		if (mode == LITURGY_MODE_DISCOVERY)
+			cfg.group = USHRT_MAX;
 	}
 
 	path = litany_json_string(config, "cs-path");

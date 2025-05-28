@@ -44,7 +44,7 @@ main(int argc, char *argv[])
 	QMainWindow		*win;
 	QJsonObject		*config;
 	char			**nargv;
-	int			ch, ret, nargc;
+	int			ch, ret, nargc, mode;
 
 	config_file = NULL;
 	app = new QApplication(argc, argv);
@@ -69,12 +69,13 @@ main(int argc, char *argv[])
 			win = new LitanyWindow(config);
 		} else if (nargc == 2) {
 			if (!strcmp(nargv[0], "chat")) {
-				win = new PeerChat(config, nargv[1]);
+				mode = LITANY_CHAT_MODE_DIRECT;
 			} else if (!strcmp(nargv[0], "group")) {
-				win = new GroupChat(config, nargv[1]);
+				mode = LITANY_CHAT_MODE_GROUP;
 			} else {
 				fatal("unknown mode '%s'", nargv[0]);
 			}
+			win = new Chat(config, nargv[1], mode);
 		} else {
 			fatal("invalid usage with %d arguments", argc);
 		}

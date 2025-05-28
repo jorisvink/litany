@@ -23,13 +23,12 @@
 #include <QApplication>
 
 #include "util.h"
+#include "chat.h"
 #include "litany.h"
 #include "tunnel.h"
 #include "liturgy.h"
 #include "peer.h"
 #include "group.h"
-#include "peer_chat.h"
-#include "group_chat.h"
 #include "window.h"
 
 /* src/main.cc */

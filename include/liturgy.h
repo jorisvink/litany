@@ -46,7 +46,7 @@ class Liturgy: public QObject {
 	Q_OBJECT
 
 public:
-	Liturgy(LiturgyInterface *, QJsonObject *, int, bool);
+	Liturgy(LiturgyInterface *, QJsonObject *, int, u_int16_t);
 	~Liturgy(void);
 
 	void signaling_state(u_int8_t, int);

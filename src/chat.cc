@@ -18,20 +18,24 @@
 #include <QEvent>
 
 #include "litany.h"
+#include "chat.h"
 
 /*
- * A window that maintains a liturgy and several tunnels to several
- * different group peers.
+ * A chat window for either talking to a single peer or multiple peers
+ * in a group setting.
  */
-GroupChat::GroupChat(QJsonObject *config, const char *group)
+Chat::Chat(QJsonObject *config, const char *which, int mode)
 {
 	u_int8_t	id;
 	QWidget		*widget;
 	QBoxLayout	*layout;
 
 	PRECOND(config != NULL);
-	PRECOND(group != NULL);
+	PRECOND(which != NULL);
+	PRECOND(mode == LITANY_CHAT_MODE_DIRECT ||
+	    mode == LITANY_CHAT_MODE_GROUP);
 
+	chat_mode = mode;
 	memset(tunnels, 0, sizeof(tunnels));
 
 	id = litany_json_number(config, "kek-id", UCHAR_MAX) & 0xff;
@@ -40,7 +44,11 @@ GroupChat::GroupChat(QJsonObject *config, const char *group)
 	tunnel_config = config;
 	kek_id = QString("%1").arg(id, 2, 16, QLatin1Char('0'));
 
-	setWindowTitle(QString("Litany - Group %1").arg(group));
+	if (chat_mode == LITANY_CHAT_MODE_DIRECT)
+		setWindowTitle(QString("Litany - Chat with %1").arg(which));
+	else
+		setWindowTitle(QString("Litany - Group %1").arg(which));
+
 	setGeometry(100, 100, 500, 400);
 	setStyleSheet("background-color: #101010");
 
@@ -57,7 +65,7 @@ GroupChat::GroupChat(QJsonObject *config, const char *group)
 	input->setStyleSheet("color: #fff;");
 
 	connect(input,
-	    &QLineEdit::returnPressed, this, &GroupChat::create_message);
+	    &QLineEdit::returnPressed, this, &Chat::create_message);
 
 	model = new QStandardItemModel(this);
 	model->insertColumn(0);
@@ -78,15 +86,22 @@ GroupChat::GroupChat(QJsonObject *config, const char *group)
 
 	setCentralWidget(widget);
 
-	discovery = new Liturgy(this, config, LITURGY_MODE_DISCOVERY, true);
+	id = QString(which).toUShort(NULL, 16) & 0xff;
+
+	if (chat_mode == LITANY_CHAT_MODE_DIRECT) {
+		tunnels[id] = new Tunnel(this, config, id, false);
+	} else {
+		discovery = new Liturgy(this,
+		    config, LITURGY_MODE_DISCOVERY, id);
+	}
 }
 
 /*
  * Signal for returnPressed() on the line input. We format the message
- * display it locally and send it to all peers.
+ * display it locally and send it to all connected peer(s).
  */
 void
-GroupChat::create_message(void)
+Chat::create_message(void)
 {
 	int			i;
 	QString			text, full;
@@ -115,7 +130,7 @@ GroupChat::create_message(void)
  * the message did not yet exist in the model itself.
  */
 void
-GroupChat::message_show(const char *msg, u_int64_t id, Qt::GlobalColor color)
+Chat::message_show(const char *msg, u_int64_t id, Qt::GlobalColor color)
 {
 	QVariant		val;
 	qulonglong		qid;
@@ -161,7 +176,7 @@ GroupChat::message_show(const char *msg, u_int64_t id, Qt::GlobalColor color)
  * and potentially stop/start its tunnel.
  */
 void
-GroupChat::peer_set_state(u_int8_t id, int state)
+Chat::peer_set_state(u_int8_t id, int state)
 {
 	if (tunnels[id] == NULL && state == 1) {
 		tunnels[id] = new Tunnel(this, tunnel_config, id, true);
@@ -176,7 +191,7 @@ GroupChat::peer_set_state(u_int8_t id, int state)
 /*
  * Destructor, we cleanup any resources.
  */
-GroupChat::~GroupChat(void)
+Chat::~Chat(void)
 {
 	int		i;
 

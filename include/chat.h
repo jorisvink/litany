@@ -14,8 +14,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef __H_LITANY_GROUP_CHAT_H
-#define __H_LITANY_GROUP_CHAT_H
+#ifndef __H_LITANY_CHAT_H
+#define __H_LITANY_CHAT_H
 
 #include <QList>
 #include <QObject>
@@ -28,16 +28,20 @@
 #include "tunnel.h"
 #include "liturgy.h"
 
+#define LITANY_CHAT_MODE_DIRECT		1
+#define LITANY_CHAT_MODE_GROUP		2
+
 /*
- * A group chat with tunnels to many peers.
+ * An active chat with one or many tunnels depending if its in direct
+ * mode or in group mode.
  */
-class GroupChat: public QMainWindow,
+class Chat: public QMainWindow,
     public LiturgyInterface, public TunnelInterface {
 	Q_OBJECT
 
 public:
-	GroupChat(QJsonObject *, const char *);
-	~GroupChat(void);
+	Chat(QJsonObject *, const char *, int);
+	~Chat(void);
 
 	void peer_set_state(u_int8_t, int) override;
 	void message_show(const char *, u_int64_t, Qt::GlobalColor) override;
@@ -46,6 +50,9 @@ private slots:
 	void create_message(void);
 
 private:
+	/* What chat mode are we in, direct or group? */
+	int				chat_mode;
+
 	/* GUI stuff. */
 	QListView			*view;
 	QLineEdit			*input;

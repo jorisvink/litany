@@ -10,21 +10,19 @@ LIBPATH		+=	/usr/local/lib /opt/homebrew/Cellar/libsodium/1.0.20/lib
 LIBS		+=	-lkyrka -lsodium
 
 HEADERS		+=	include/litany.h \
+			include/chat.h \
 			include/tunnel.h \
 			include/liturgy.h \
 			include/group.h \
-			include/group_chat.h \
 			include/peer.h \
-			include/peer_chat.h \
 			include/window.h \
 
 SOURCES		+=	src/main.cc \
+			src/chat.cc \
 			src/tunnel.cc \
 			src/liturgy.cc \
 			src/group.cc \
-			src/group_chat.cc \
 			src/peer.cc \
-			src/peer_chat.cc \
 			src/litany.cc \
 			src/msg.c
 
