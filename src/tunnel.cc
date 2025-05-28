@@ -530,6 +530,7 @@ heaven_send(const void *data, size_t len, u_int64_t seq, void *udata)
 		break;
 	default:
 		printf("unknown packet %u\n", msg->type);
+		break;
 	}
 }
 
