@@ -178,6 +178,8 @@ Chat::message_show(const char *msg, u_int64_t id, Qt::GlobalColor color)
 void
 Chat::peer_set_state(u_int8_t id, int state)
 {
+	PRECOND(chat_mode == LITANY_CHAT_MODE_GROUP);
+
 	if (tunnels[id] == NULL && state == 1) {
 		tunnels[id] = new Tunnel(this, tunnel_config, id, true);
 	}
