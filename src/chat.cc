@@ -35,6 +35,7 @@ Chat::Chat(QJsonObject *config, const char *which, int mode)
 	PRECOND(mode == LITANY_CHAT_MODE_DIRECT ||
 	    mode == LITANY_CHAT_MODE_GROUP);
 
+	discovery = NULL;
 	chat_mode = mode;
 	memset(tunnels, 0, sizeof(tunnels));
 
