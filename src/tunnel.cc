@@ -91,8 +91,6 @@ Tunnel::Tunnel(TunnelInterface *obj, QJsonObject *config,
 	cfg.tunnel = litany_json_number(config, "kek-id", UCHAR_MAX) << 8;
 	cfg.tunnel |= peer_id;
 
-	printf("flock: %lx, tunnel: %04x\n", cfg.flock, cfg.tunnel);
-
 	cs_path = litany_json_string(config, "cs-path");
 	kek_path = litany_json_string(config, "kek-path");
 
@@ -155,8 +153,6 @@ Tunnel::Tunnel(TunnelInterface *obj, QJsonObject *config,
 Tunnel::~Tunnel(void)
 {
 	struct litany_msg	*msg;
-
-	printf("tunnel cleanup called\n");
 
 	while ((msg = TAILQ_FIRST(&msgs)) != NULL) {
 		TAILQ_REMOVE(&msgs, msg, list);
