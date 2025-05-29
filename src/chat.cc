@@ -95,6 +95,8 @@ Chat::Chat(QJsonObject *config, const char *which, int mode)
 		discovery = new Liturgy(this,
 		    config, LITURGY_MODE_DISCOVERY, id);
 	}
+
+	show();
 }
 
 /*

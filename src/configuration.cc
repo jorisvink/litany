@@ -90,7 +90,7 @@ struct {
 		"Cathedral ip:port",
 		"cathedral",
 		QRegularExpressionValidator(
-		    QRegularExpression("^.*$")
+		    QRegularExpression("^([0-9.])+:([0-9]{1,4})$")
 		),
 	},
 
@@ -255,6 +255,7 @@ apply(QWidget *dialog, QString path, LitanyWindow *litany, QAction *menu_item)
 
 	if (output->open(QFile::WriteOnly | QFile::Text | QFile::Truncate)) {
 		if (output->write(json->toJson())) {
+			litany->show();
 			litany->initialize_liturgies(settings);
 			menu_item->disconnect(litany);
 			QObject::connect(menu_item,

@@ -79,10 +79,7 @@ main(int argc, char *argv[])
 		}
 
 		litany_settings_initialize(win, config);
-
-		win->show();
 		ret = app->exec();
-
 		delete config;
 		delete win;
 	} catch (const std::exception &e) {
