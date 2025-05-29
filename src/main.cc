@@ -65,8 +65,9 @@ main(int argc, char *argv[])
 
 	try {
 		config = config_load();
-
+        qDebug() << "After config load";
 		if (nargc == 0) {
+            qDebug() << "Creating litany window";
 			win = new LitanyWindow(config);
 		} else if (nargc == 2) {
 			if (!strcmp(nargv[0], "chat")) {
@@ -171,61 +172,42 @@ fatal(const char *fmt, ...)
 static QJsonObject *
 config_load(void)
 {
-	int			fd;
-	struct stat		st;
-	ssize_t			ret;
-	QJsonDocument		cfg;
+    QJsonDocument		cfg;
 	QJsonObject		json;
 	QJsonParseError		error;
-	QString			dir, path;
-	char			buf[2048];
+    QString			dir, path;
+    QFile           config_path(config_file);
 
-	if (config_file == NULL) {
-		dir = QStandardPaths::writableLocation(
-		    QStandardPaths::AppDataLocation);
+    if (config_path.exists()) {
+        if (config_path.open(QFile::ReadOnly | QFile::Text)) {
+            cfg = QJsonDocument::fromJson(config_path.readAll(), &error);
+            config_path.close();
 
-		if (mkdir(dir.toUtf8().data(), 0700) == -1 && errno != EEXIST)
-			fatal("mkdir: %d", errno);
+            if (error.error != QJsonParseError::NoError) {
+                if (cfg.isObject()) {
+                    return (new QJsonObject(cfg.object()));
+                } else {
+                    fatal("Expecting a json object");
+                }
+            } else {
+                fatal("json error at %d: %s", error.offset,
+                      error.errorString().toStdString().c_str());
+            }
+        }
 
-		path = dir + "/config.json";
-	} else {
-		path = config_file;
-	}
+    } else {
+        dir = QStandardPaths::writableLocation(
+            QStandardPaths::AppDataLocation);
 
-	if ((fd = open(path.toUtf8().data(), O_RDONLY)) == -1)
-		fatal("cannot open '%s'", path.toUtf8().data());
+        if (mkdir(dir.toUtf8().data(), 0700) == -1 && errno != EEXIST)
+            fatal("mkdir: %d", errno);
 
-	if (fstat(fd, &st) == -1)
-		fatal("fstat(): %d", errno);
+        config_path.setFileName(dir + "/config.json");
+        return (new QJsonObject());
+    }
 
-	if ((size_t)st.st_size > sizeof(buf))
-		fatal("json contents of configuration too large");
-
-	for (;;) {
-		if ((ret = read(fd, buf, sizeof(buf))) == -1) {
-			if (errno == EINTR)
-				continue;
-			fatal("read: %d", errno);
-		}
-
-		if (ret != st.st_size)
-			fatal("partial read on configuration file");
-
-		break;
-	}
-
-	(void)close(fd);
-
-	QByteArray data(buf, ret);
-	cfg = QJsonDocument::fromJson(data, &error);
-
-	if (error.error != QJsonParseError::NoError) {
-		fatal("json error at %d: %s", error.offset,
-		    error.errorString().toStdString().c_str());
-	}
-
-	if (cfg.isObject() == false)
-		fatal("expecting a json object");
-
-	return (new QJsonObject(cfg.object()));
+    /*
+     * This shouldn't be reachable
+     */
+    return NULL;
 }
