@@ -186,6 +186,8 @@ config_load(void)
 			fatal("mkdir: %d", errno);
 
 		config_path.setFileName(dir + "/config.json");
+	} else {
+		config_path.setFileName(config_file);
 	}
 
 	if (config_path.exists()) {
