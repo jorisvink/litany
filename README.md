@@ -10,8 +10,13 @@ group conversations you have tunnels to each participant in the group.
 This is a WIP and the UI is wonky, I am not a GUI person.
 
 Double click on a peer to open its chat window (spawned
-as a separate process), your peer needs to do the same right
-now as there is no signaling yet.
+as a separate process). Your peer will be signaled via
+the sanctum protocol that someone is trying to chat with
+them. They have to also open your chat window before any
+tunnel is able to be established.
+
+Groups can be joined via the JOIN GROUP button and input field. In groups
+each member has their own tunnel to each other participant in the group.
 
 Messages are limited to 512 bytes each.
 
