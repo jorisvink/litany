@@ -24,7 +24,7 @@
 #include <QStandardPaths>
 
 #include "litany.h"
-#include "configuration.h"
+#include "settings.h"
 
 static QJsonObject		*config_load(void);
 

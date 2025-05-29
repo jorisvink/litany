@@ -14,8 +14,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef CONFIGURATION_H
-#define CONFIGURATION_H
+#ifndef __H_SETTINGS_H
+#define __H_SETTINGS_H
 
 #include <QStandardPaths>
 #include <QMenuBar>

@@ -18,7 +18,7 @@
 #include <QMessageBox>
 #include <QJsonDocument>
 
-#include "configuration.h"
+#include "settings.h"
 
 static int	apply(QWidget *, QString, LitanyWindow *, QAction *);
 
