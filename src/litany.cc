@@ -192,3 +192,15 @@ LitanyWindow::group_open(void)
 
 	groups[id]->chat_open();
 }
+
+/*
+ * Re-/initialize liturgies when configuration changes.
+ */
+void
+LitanyWindow::initialize_liturgies(QJsonObject *config) {
+    PRECOND(config != NULL);
+    PRECOND(config->isEmpty() == false);
+
+    signaling = new Liturgy(this, config, LITURGY_MODE_SIGNAL, 0);
+    discovery = new Liturgy(this, config, LITURGY_MODE_DISCOVERY, 0);
+}
