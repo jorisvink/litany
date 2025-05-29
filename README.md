@@ -53,6 +53,10 @@ By default litany will attempt to open this based on
 QStandardPaths::AppDataLocation, or you can specify
 it on the cli with -c when starting litany.
 
+When you start litany for the first time without any configuration
+present it will prompt you to fill in the settings via a dialog
+window.
+
 ## Screenshots
 
 <img src="images/litany01.png">
