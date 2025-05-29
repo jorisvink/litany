@@ -130,7 +130,16 @@ apply_settings(QWidget *settings_window,
     }
 
     json.setObject(settings);
-    output.open(QFile::WriteOnly | QFile::Text | QFile::Truncate);
-    output.write(json.toJson());
-    output.close();
+    if (output.open(QFile::WriteOnly | QFile::Text | QFile::Truncate)) {
+        if (output.write(json.toJson()))
+            return;
+        else
+            fatal("Couldn't write to output file '%s': %s",
+                  output.fileName().toStdString().c_str(),
+                  output.errorString().toStdString().c_str());
+        output.close();
+    } else {
+        fatal("Couldn't open output file for writing: %s",
+              output.errorString().toStdString().c_str());
+    }
 }
