@@ -38,5 +38,4 @@ void apply_settings(QWidget *,
 void set_configuration(QMainWindow *, QJsonObject *, QAction *);
 void setup_settings_menu(QMainWindow *, QJsonObject *);
 
-
 #endif // CONFIGURATION_H
