@@ -27,6 +27,7 @@
 #include <unistd.h>
 
 #include "litany.h"
+#include "configuration.h"
 
 static QJsonObject		*config_load(void);
 
@@ -79,6 +80,8 @@ main(int argc, char *argv[])
 		} else {
 			fatal("invalid usage with %d arguments", argc);
 		}
+
+        setup_settings_menu(win, config);
 
 		win->show();
 		ret = app->exec();
