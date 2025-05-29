@@ -68,9 +68,13 @@ set_configuration(QJsonObject *config) {
         setting_label = new QLabel(item.key());
         setting_label->setAlignment(Qt::AlignLeft);
 
-        setting_value = new QLineEdit(litany_json_string(config,
+        if (!config->isEmpty())
+            setting_value = new QLineEdit(litany_json_string(config,
                                                          item.value()
                                                          ));
+        else
+            setting_value = new QLineEdit();
+
         setting_value->setAlignment(Qt::AlignLeft);
         setting_value->setObjectName(item.value());
 
