@@ -24,6 +24,10 @@ setup_settings_menu(QMainWindow *win, QJsonObject *config) {
     QObject::connect(settings_action, &QAction::triggered, win, [=](){
         set_configuration(config);
     });
+
+    if (config->isEmpty()) {
+        settings_action->trigger();
+    }
 }
 
 /*
@@ -97,6 +101,7 @@ set_configuration(QJsonObject *config) {
     settings_window = new QWidget;
     settings_window->setMinimumWidth(500);
     settings_window->setLayout(container);
+    settings_window->setWindowModality(Qt::WindowModal);
 
     QObject::connect(cancel_btn, &QPushButton::clicked, [=]() {
         settings_window->close();
@@ -118,7 +123,7 @@ apply_settings(QWidget *settings_window,
                QString path) {
     QJsonDocument json = QJsonDocument();
     QJsonObject settings;
-    QFile output(path + ".tmp");
+    QFile output(path);
     QList<const char *>::const_iterator item, end;
 
     for (item = settings_labels.cbegin(), end = settings_labels.cend();
