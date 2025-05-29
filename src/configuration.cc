@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include <QJsonDocument>
 #include <QFile>
 
@@ -25,9 +23,8 @@ setup_settings_menu(QMainWindow *win, QJsonObject *config) {
         set_configuration(config);
     });
 
-    if (config->isEmpty()) {
+    if (config->isEmpty())
         settings_action->trigger();
-    }
 }
 
 /*
@@ -128,14 +125,11 @@ apply_settings(QWidget *settings_window,
 
     for (item = settings_labels.cbegin(), end = settings_labels.cend();
          item != end; ++item) {
-        qDebug() << "Item: " << *item;
         QLineEdit *value = settings_window->findChild<QLineEdit *>(*item);
-        qDebug() << "Value: " << value->text();
         settings.insert(*item, value->text());
     }
 
     json.setObject(settings);
-    qDebug() << json;
     output.open(QFile::WriteOnly | QFile::Text | QFile::Truncate);
     output.write(json.toJson());
     output.close();

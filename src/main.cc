@@ -191,7 +191,7 @@ config_load(void)
     if (config_path.exists()) {
         if (config_path.open(QFile::ReadOnly | QFile::Text)) {
             cfg = QJsonDocument::fromJson(config_path.readAll(), &error);
-            qDebug() << cfg;
+
             if (error.error == QJsonParseError::NoError) {
                 if (cfg.isObject()) {
                     return (new QJsonObject(cfg.object()));
