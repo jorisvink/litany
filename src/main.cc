@@ -65,6 +65,7 @@ main(int argc, char *argv[])
 
 		if (nargc == 0) {
 			win = new LitanyWindow(config);
+			litany_settings_initialize(win, config);
 		} else if (nargc == 2) {
 			if (!strcmp(nargv[0], "chat")) {
 				mode = LITANY_CHAT_MODE_DIRECT;
@@ -78,8 +79,8 @@ main(int argc, char *argv[])
 			fatal("invalid usage with %d arguments", argc);
 		}
 
-		litany_settings_initialize(win, config);
 		ret = app->exec();
+
 		delete config;
 		delete win;
 	} catch (const std::exception &e) {
