@@ -65,9 +65,9 @@ main(int argc, char *argv[])
 
 	try {
 		config = config_load();
-        qDebug() << "After config load";
+		qDebug() << "After config load";
 		if (nargc == 0) {
-            qDebug() << "Creating litany window";
+			qDebug() << "Creating litany window";
 			win = new LitanyWindow(config);
 		} else if (nargc == 2) {
 			if (!strcmp(nargv[0], "chat")) {
@@ -82,7 +82,7 @@ main(int argc, char *argv[])
 			fatal("invalid usage with %d arguments", argc);
 		}
 
-        setup_settings_menu(win, config);
+		setup_settings_menu(win, config);
 
 		win->show();
 		ret = app->exec();
@@ -119,7 +119,7 @@ litany_json_number(QJsonObject *json, const char *field, u_int64_t max)
 	value = val.toString().toULongLong(&ok, 16);
 	if (!ok) {
 		fatal("invalid %s: %s",
-		    field, val.toString().toStdString().c_str());
+			field, val.toString().toStdString().c_str());
 	}
 
 	if (value > max)
@@ -172,43 +172,43 @@ fatal(const char *fmt, ...)
 static QJsonObject *
 config_load(void)
 {
-    QJsonDocument		cfg;
+	QJsonDocument		cfg;
 	QJsonObject		json;
 	QJsonParseError		error;
-    QString			dir, path;
-    QFile           config_path;
+	QString			dir, path;
+	QFile			config_path;
 
-    if (config_file == NULL) {
-        dir = QStandardPaths::writableLocation(
-            QStandardPaths::AppDataLocation);
+	if (config_file == NULL) {
+		dir = QStandardPaths::writableLocation(
+			QStandardPaths::AppDataLocation);
 
-        if (mkdir(dir.toUtf8().data(), 0700) == -1 && errno != EEXIST)
-            fatal("mkdir: %d", errno);
+		if (mkdir(dir.toUtf8().data(), 0700) == -1 && errno != EEXIST)
+			fatal("mkdir: %d", errno);
 
-        config_path.setFileName(dir + "/config.json");
-    }
+		config_path.setFileName(dir + "/config.json");
+	}
 
-    if (config_path.exists()) {
-        if (config_path.open(QFile::ReadOnly | QFile::Text)) {
-            cfg = QJsonDocument::fromJson(config_path.readAll(), &error);
+	if (config_path.exists()) {
+		if (config_path.open(QFile::ReadOnly | QFile::Text)) {
+			cfg = QJsonDocument::fromJson(config_path.readAll(), &error);
 
-            if (error.error == QJsonParseError::NoError) {
-                if (cfg.isObject()) {
-                    return (new QJsonObject(cfg.object()));
-                } else {
-                    fatal("Expecting a json object");
-                }
-            } else {
-                fatal("json error at %d: %s", error.offset,
-                      error.errorString().toStdString().c_str());
-            }
-        }
-    } else {
-        return (new QJsonObject());
-    }
+			if (error.error == QJsonParseError::NoError) {
+				if (cfg.isObject()) {
+					return (new QJsonObject(cfg.object()));
+				} else {
+					fatal("Expecting a json object");
+				}
+			} else {
+				fatal("json error at %d: %s", error.offset,
+					error.errorString().toStdString().c_str());
+			}
+		}
+	} else {
+		return (new QJsonObject());
+	}
 
-    /*
-     * This shouldn't be reachable
-     */
-    return NULL;
+	/*
+	 * This shouldn't be reachable
+	 */
+	return NULL;
 }

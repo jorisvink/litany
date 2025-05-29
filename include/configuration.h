@@ -15,10 +15,10 @@
 #define VALUE_COLUMN 1
 
 void apply_settings(QWidget *,
-                    QList<const char *>,
-                    QString,
-                    LitanyWindow *,
-                    QAction *);
+					QList<const char *>,
+					QString,
+					LitanyWindow *,
+					QAction *);
 void set_configuration(QMainWindow *, QJsonObject *, QAction *);
 void setup_settings_menu(QMainWindow *, QJsonObject *);
 

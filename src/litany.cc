@@ -94,10 +94,10 @@ LitanyWindow::LitanyWindow(QJsonObject *config)
 
 	setCentralWidget(widget);
 
-    if (!config->isEmpty()) {
-        signaling = new Liturgy(this, config, LITURGY_MODE_SIGNAL, 0);
-        discovery = new Liturgy(this, config, LITURGY_MODE_DISCOVERY, 0);
-    }
+	if (!config->isEmpty()) {
+		signaling = new Liturgy(this, config, LITURGY_MODE_SIGNAL, 0);
+		discovery = new Liturgy(this, config, LITURGY_MODE_DISCOVERY, 0);
+	}
 }
 
 /*
@@ -198,9 +198,9 @@ LitanyWindow::group_open(void)
  */
 void
 LitanyWindow::initialize_liturgies(QJsonObject *config) {
-    PRECOND(config != NULL);
-    PRECOND(config->isEmpty() == false);
+	PRECOND(config != NULL);
+	PRECOND(config->isEmpty() == false);
 
-    signaling = new Liturgy(this, config, LITURGY_MODE_SIGNAL, 0);
-    discovery = new Liturgy(this, config, LITURGY_MODE_DISCOVERY, 0);
+	signaling = new Liturgy(this, config, LITURGY_MODE_SIGNAL, 0);
+	discovery = new Liturgy(this, config, LITURGY_MODE_DISCOVERY, 0);
 }

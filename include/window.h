@@ -43,7 +43,7 @@ public:
 	void peer_set_state(u_int8_t, int) override;
 	void peer_set_notification(u_int8_t, int) override;
 
-    void initialize_liturgies(QJsonObject *);
+	void initialize_liturgies(QJsonObject *);
 
 private:
 	void group_open(void);
