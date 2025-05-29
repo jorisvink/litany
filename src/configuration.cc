@@ -1,5 +1,9 @@
+#include <iostream>
+
+#include <QJsonDocument>
+#include <QFile>
+
 #include "configuration.h"
-#include "litany.h"
 
 /*
  * Initialize and setup the menubar and action
@@ -64,8 +68,11 @@ set_configuration(QJsonObject *config) {
         setting_label = new QLabel(item.key());
         setting_label->setAlignment(Qt::AlignLeft);
 
-        setting_value = new QLineEdit(litany_json_string(config, item.value()));
+        setting_value = new QLineEdit(litany_json_string(config,
+                                                         item.value()
+                                                         ));
         setting_value->setAlignment(Qt::AlignLeft);
+        setting_value->setObjectName(item.value());
 
         row_count = settings_layout->rowCount();
         settings_layout->addWidget(setting_label, row_count, LABEL_COLUMN);
@@ -90,7 +97,37 @@ set_configuration(QJsonObject *config) {
     QObject::connect(cancel_btn, &QPushButton::clicked, [=]() {
         settings_window->close();
     });
-    //QObject::connect(apply_btn, &QPushButton::clicked, &apply_settings);
+    QObject::connect(apply_btn, &QPushButton::clicked, [=]() {
+        apply_settings(settings_window, settings.values(), path);
+        settings_window->close();
+    });
 
     settings_window->show();
+}
+
+/*
+ *
+ */
+void
+apply_settings(QWidget *settings_window,
+               QList<const char *> settings_labels,
+               QString path) {
+    QJsonDocument json = QJsonDocument();
+    QJsonObject settings;
+    QFile output(path + ".tmp");
+    QList<const char *>::const_iterator item, end;
+
+    for (item = settings_labels.cbegin(), end = settings_labels.cend();
+         item != end; ++item) {
+        qDebug() << "Item: " << *item;
+        QLineEdit *value = settings_window->findChild<QLineEdit *>(*item);
+        qDebug() << "Value: " << value->text();
+        settings.insert(*item, value->text());
+    }
+
+    json.setObject(settings);
+    qDebug() << json;
+    output.open(QFile::WriteOnly | QFile::Text | QFile::Truncate);
+    output.write(json.toJson());
+    output.close();
 }
