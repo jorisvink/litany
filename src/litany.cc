@@ -39,6 +39,9 @@ LitanyWindow::LitanyWindow(QJsonObject *config)
 
 	PRECOND(config != NULL);
 
+	signaling = NULL;
+	discovery = NULL;
+
 	setFixedWidth(300);
 	setMinimumHeight(600);
 
@@ -197,9 +200,13 @@ LitanyWindow::group_open(void)
  * Re-/initialize liturgies when configuration changes.
  */
 void
-LitanyWindow::initialize_liturgies(QJsonObject *config) {
+LitanyWindow::initialize_liturgies(QJsonObject *config)
+{
 	PRECOND(config != NULL);
 	PRECOND(config->isEmpty() == false);
+
+	delete signaling;
+	delete discovery;
 
 	signaling = new Liturgy(this, config, LITURGY_MODE_SIGNAL, 0);
 	discovery = new Liturgy(this, config, LITURGY_MODE_DISCOVERY, 0);

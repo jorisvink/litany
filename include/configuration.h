@@ -27,15 +27,10 @@
 
 #include "litany.h"
 
-#define LABEL_COLUMN 0
-#define VALUE_COLUMN 1
+#define LABEL_COLUMN		0
+#define VALUE_COLUMN		1
 
-void apply_settings(QWidget *,
-					QList<const char *>,
-					QString,
-					LitanyWindow *,
-					QAction *);
-void set_configuration(QMainWindow *, QJsonObject *, QAction *);
-void setup_settings_menu(QMainWindow *, QJsonObject *);
+void	litany_settings_initialize(QMainWindow *, QJsonObject *);
+void	litany_settings_show(QMainWindow *, QJsonObject *, QAction *);
 
-#endif // CONFIGURATION_H
+#endif
