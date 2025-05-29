@@ -243,7 +243,7 @@ apply(QWidget *dialog, QString path, LitanyWindow *litany, QAction *menu_item)
 
 		if (value->hasAcceptableInput() == false) {
 			QMessageBox::warning(dialog, fields[i].field,
-			    "field value does not satisfy requirements",
+			    "Field value does not satisfy requirements",
 			    QMessageBox::Ok);
 			return (-1);
 		}
@@ -272,7 +272,7 @@ apply(QWidget *dialog, QString path, LitanyWindow *litany, QAction *menu_item)
 		output->close();
 
 		if (rename(opath.toUtf8().data(), path.toUtf8().data()) == -1) {
-			fatal("failed to rename settings file: %s",
+			fatal("Failed to rename settings file: %s",
 			    output->errorString().toStdString().c_str());
 		}
 	} else {
