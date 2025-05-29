@@ -20,7 +20,7 @@ setup_settings_menu(QMainWindow *win, QJsonObject *config) {
     preferences = menubar->addMenu("Settings");
     preferences->addAction(settings_action);
     QObject::connect(settings_action, &QAction::triggered, win, [=](){
-        set_configuration(config);
+        set_configuration(win, config, settings_action);
     });
 
     if (config->isEmpty())
@@ -32,7 +32,7 @@ setup_settings_menu(QMainWindow *win, QJsonObject *config) {
  * change/set configuration in the json file
  */
 void
-set_configuration(QJsonObject *config) {
+set_configuration(QMainWindow *win, QJsonObject *config, QAction *menu_item) {
     QString      path;
     QWidget     *settings_window;
     QGridLayout *settings_layout;
@@ -104,7 +104,11 @@ set_configuration(QJsonObject *config) {
         settings_window->close();
     });
     QObject::connect(apply_btn, &QPushButton::clicked, [=]() {
-        apply_settings(settings_window, settings.values(), path);
+        apply_settings(settings_window,
+                       settings.values(),
+                       path,
+                       (LitanyWindow *)win,
+                       menu_item);
         settings_window->close();
     });
 
@@ -117,26 +121,34 @@ set_configuration(QJsonObject *config) {
 void
 apply_settings(QWidget *settings_window,
                QList<const char *> settings_labels,
-               QString path) {
+               QString path,
+               LitanyWindow *win,
+               QAction *menu_item) {
     QJsonDocument json = QJsonDocument();
-    QJsonObject settings;
+    QJsonObject *settings;
     QFile output(path);
     QList<const char *>::const_iterator item, end;
 
+    settings = new QJsonObject();
     for (item = settings_labels.cbegin(), end = settings_labels.cend();
          item != end; ++item) {
         QLineEdit *value = settings_window->findChild<QLineEdit *>(*item);
-        settings.insert(*item, value->text());
+        settings->insert(*item, value->text());
     }
 
-    json.setObject(settings);
+    json.setObject(*settings);
     if (output.open(QFile::WriteOnly | QFile::Text | QFile::Truncate)) {
-        if (output.write(json.toJson()))
-            return;
-        else
+        if (output.write(json.toJson())) {
+            win->initialize_liturgies(settings);
+            menu_item->disconnect(win);
+            QObject::connect(menu_item, &QAction::triggered, win, [=](){
+                set_configuration(win, settings, menu_item);
+            });
+        } else {
             fatal("Couldn't write to output file '%s': %s",
                   output.fileName().toStdString().c_str(),
                   output.errorString().toStdString().c_str());
+        }
         output.close();
     } else {
         fatal("Couldn't open output file for writing: %s",

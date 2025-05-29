@@ -14,8 +14,12 @@
 #define LABEL_COLUMN 0
 #define VALUE_COLUMN 1
 
-void apply_settings(QWidget *, QList<const char *>, QString);
-void set_configuration(QJsonObject *);
+void apply_settings(QWidget *,
+                    QList<const char *>,
+                    QString,
+                    LitanyWindow *,
+                    QAction *);
+void set_configuration(QMainWindow *, QJsonObject *, QAction *);
 void setup_settings_menu(QMainWindow *, QJsonObject *);
 
 
