@@ -176,14 +176,23 @@ config_load(void)
 	QJsonObject		json;
 	QJsonParseError		error;
     QString			dir, path;
-    QFile           config_path(config_file);
+    QFile           config_path;
+
+    if (config_file == NULL) {
+        dir = QStandardPaths::writableLocation(
+            QStandardPaths::AppDataLocation);
+
+        if (mkdir(dir.toUtf8().data(), 0700) == -1 && errno != EEXIST)
+            fatal("mkdir: %d", errno);
+
+        config_path.setFileName(dir + "/config.json");
+    }
 
     if (config_path.exists()) {
         if (config_path.open(QFile::ReadOnly | QFile::Text)) {
             cfg = QJsonDocument::fromJson(config_path.readAll(), &error);
-            config_path.close();
-
-            if (error.error != QJsonParseError::NoError) {
+            qDebug() << cfg;
+            if (error.error == QJsonParseError::NoError) {
                 if (cfg.isObject()) {
                     return (new QJsonObject(cfg.object()));
                 } else {
@@ -194,15 +203,7 @@ config_load(void)
                       error.errorString().toStdString().c_str());
             }
         }
-
     } else {
-        dir = QStandardPaths::writableLocation(
-            QStandardPaths::AppDataLocation);
-
-        if (mkdir(dir.toUtf8().data(), 0700) == -1 && errno != EEXIST)
-            fatal("mkdir: %d", errno);
-
-        config_path.setFileName(dir + "/config.json");
         return (new QJsonObject());
     }
 
