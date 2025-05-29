@@ -50,6 +50,6 @@ it on the cli with -c when starting litany.
 
 ## Screenshots
 
-<img src="images/litany01.png">
+<img style="float: left" src="images/litany01.png">
+<img style="float: left" src="images/litany03.png">
 <img src="images/litany02.png">
-<img src="images/litany03.png">
