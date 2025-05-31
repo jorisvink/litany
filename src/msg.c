@@ -15,7 +15,12 @@
  */
 
 #include <sys/types.h>
-#include <sys/queue.h>
+
+#if defined(PLATFORM_WINDOWS)
+#include <libkyrka/portable_win.h>
+#endif
+
+#include <libkyrka/libkyrka.h>
 
 #include <errno.h>
 #include <inttypes.h>
@@ -25,6 +30,7 @@
 #include <time.h>
 
 #include "util.h"
+#include "queue.h"
 
 /* We can use libnyfe because its included in libkyrka. */
 void	nyfe_random_init(void);

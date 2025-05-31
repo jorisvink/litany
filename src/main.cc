@@ -117,7 +117,7 @@ litany_json_number(QJsonObject *json, const char *field, u_int64_t max)
 	}
 
 	if (value > max)
-		fatal("%s out of range", field);
+		fatal("%s out of range (%llu > %llu)", field, value, max);
 
 	return (value);
 }
@@ -179,7 +179,12 @@ config_load(void)
 		dir = QStandardPaths::writableLocation(
 		    QStandardPaths::AppDataLocation);
 
+		/* XXX */
+#if defined(PLATFORM_WINDOWS)
+		if (mkdir(dir.toUtf8().data()) == -1 && errno != EEXIST)
+#else
 		if (mkdir(dir.toUtf8().data(), 0700) == -1 && errno != EEXIST)
+#endif
 			fatal("mkdir: %d", errno);
 
 		cpath.setFileName(dir + "/config.json");

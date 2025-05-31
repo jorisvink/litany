@@ -21,6 +21,10 @@
 #include <QProcess>
 #include <QListWidgetItem>
 
+#if defined(PLATFORM_WINDOWS)
+#include <libkyrka/portable_win.h>
+#endif
+
 class LitanyWindow;
 
 /*

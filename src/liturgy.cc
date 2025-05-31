@@ -80,7 +80,7 @@ Liturgy::Liturgy(LiturgyInterface *parent, QJsonObject *config,
 	cfg.udata = this;
 	cfg.send = cathedral_send;
 
-	cfg.flock = litany_json_number(config, "flock", ULONG_MAX);
+	cfg.flock = litany_json_number(config, "flock", ULLONG_MAX);
 	if (cfg.flock & 0xff)
 		fatal("flock invalid (contains domain bits)");
 

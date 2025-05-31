@@ -20,6 +20,10 @@
 #include <QObject>
 #include <QProcess>
 
+#if defined(PLATFORM_WINDOWS)
+#include <libkyrka/portable_win.h>
+#endif
+
 class LitanyWindow;
 
 /*

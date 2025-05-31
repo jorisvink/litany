@@ -24,6 +24,7 @@ Messages are resent if a peer does not ACK a message after 5 seconds.
 
 ## Building
 
+Litany builds on Linux, OpenBSD, MacOS and for Windows.
 You need Qt6 and libkyrka with its dependencies installed.
 
 ```
@@ -31,10 +32,29 @@ $ qmake qt/litany.pro
 $ make -j
 ```
 
+If you want to build on Windows, you need a mingw toolchain on your
+Linux machine and cross compile it:
+
+```
+$ /path/to/mingw-toolchain/qt6/bin/qmake6 qt/litany.pro CONFIG+=windows
+$ make -j
+```
+
 ## Configuration
 
-The litany requires a JSON based configuration that contains
-the relevant information for your terminal.
+When you start litany for the first time without any configuration
+present it will prompt you to fill in the settings via a dialog
+window.
+
+You can also specify this configuration from the command-line when
+starting Litany using the **-c** flag:
+
+```
+$ litany -c $HOME/.litany.json
+```
+
+This JSON based configuration contains the relevant information
+for your terminal.
 
 ```
 {
@@ -48,14 +68,6 @@ the relevant information for your terminal.
     "cathedral": "ip:port"
 }
 ```
-
-By default litany will attempt to open this based on
-QStandardPaths::AppDataLocation, or you can specify
-it on the cli with -c when starting litany.
-
-When you start litany for the first time without any configuration
-present it will prompt you to fill in the settings via a dialog
-window.
 
 ## Screenshots
 

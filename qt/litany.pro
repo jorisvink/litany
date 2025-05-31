@@ -35,6 +35,11 @@ litany.files	= litany
 
 INSTALLS	+= litany
 
+windows {
+	QMAKE_CFLAGS += -DPLATFORM_WINDOWS
+	QMAKE_CXXFLAGS += -DPLATFORM_WINDOWS
+}
+
 sanitize {
 	CONFIG+= sanitizer sanitize_address sanitize_undefined
 }

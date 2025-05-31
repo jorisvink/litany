@@ -17,7 +17,11 @@
 #ifndef __H_LITANY_UTIL_H
 #define __H_LITANY_UTIL_H
 
-#include <sys/queue.h>
+#if defined(PLATFORM_WINDOWS)
+#include <libkyrka/portable_win.h>
+#endif
+
+#include "queue.h"
 
 /* Handy macros. */
 #define PRECOND(x)							\

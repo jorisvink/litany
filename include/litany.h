@@ -22,6 +22,10 @@
 #include <QJsonObject>
 #include <QApplication>
 
+#if defined(PLATFORM_WINDOWS)
+#include <libkyrka/portable_win.h>
+#endif
+
 #include "util.h"
 #include "chat.h"
 #include "litany.h"
