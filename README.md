@@ -34,9 +34,13 @@ Join the 0xcafebabe group chat:
 $ litany group cafebabe
 ```
 
-## Limitations
+## Limitations & traffic analysis.
 
-Messages are limited to 512 bytes each.
+Messages are limited 512 bytes.
+
+This is because litany will send full-sized message frames for
+each message that is sent regardless of the length of the plaintext
+message.
 
 ## Building
 
