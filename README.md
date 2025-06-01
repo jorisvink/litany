@@ -59,7 +59,8 @@ If you want to build on Windows, you need a mingw toolchain on your
 Linux machine and cross compile it:
 
 ```
-$ /path/to/mingw-toolchain/qt6/bin/qmake6 qt/litany.pro CONFIG+=windows
+$ env KYRKA=/path/to/libkyrka/<target> \
+    /path/to/mingw-toolchain/qt6/bin/qmake6 qt/litany.pro CONFIG+=windows
 $ make -j
 ```
 
