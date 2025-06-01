@@ -27,6 +27,7 @@
 Chat::Chat(QJsonObject *config, const char *which, int mode)
 {
 	u_int8_t	id;
+	u_int16_t	group;
 	QWidget		*widget;
 	QBoxLayout	*layout;
 
@@ -87,13 +88,13 @@ Chat::Chat(QJsonObject *config, const char *which, int mode)
 
 	setCentralWidget(widget);
 
-	id = QString(which).toUShort(NULL, 16) & 0xff;
-
 	if (chat_mode == LITANY_CHAT_MODE_DIRECT) {
+		id = QString(which).toUShort(NULL, 16) & 0xff;
 		tunnels[id] = new Tunnel(this, config, id, false);
 	} else {
+		group = QString(which).toUShort(NULL, 16);
 		discovery = new Liturgy(this,
-		    config, LITURGY_MODE_DISCOVERY, id);
+		    config, LITURGY_MODE_DISCOVERY, group);
 	}
 
 	show();
