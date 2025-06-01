@@ -1,31 +1,50 @@
 # Litany
 
-Essentially E2EE and P2P chat using the sanctum protocol, wrapped
-in a Qt application because people dislike my terminal approach to
-everything.
+This is an end-to-end encrypted and peer-to-peer chat program
+using the sanctum protocol as its transport layer.
 
-You can have one-to-one conversations or group conversations. With
-group conversations you have tunnels to each participant in the group.
+## Features
 
-This is a WIP and the UI is wonky, I am not a GUI person.
+Litany supports having one-to-one or group conversations. The litany
+establishes a sanctum tunnel for each peer in a conversation, meaning
+group conversations have multiple active tunnels.
 
-Double click on a peer to open its chat window (spawned
-as a separate process). Your peer will be signaled via
-the sanctum protocol that someone is trying to chat with
-them. They have to also open your chat window before any
-tunnel is able to be established.
+## Usage
+
+Double click on an online peer in the list to open its chat window
+(spawned as a separate process). Your peer will be signaled via the
+sanctum protocol that someone is trying to chat with them. They have
+to also open your chat window before any tunnel is able to be established.
 
 Groups can be joined via the JOIN GROUP button and input field. In groups
 each member has their own tunnel to each other participant in the group.
 
-Messages are limited to 512 bytes each.
+You can join group conversations or create direct chat windows without
+being visible Litany by starting it directly from the terminal:
 
-Messages are resent if a peer does not ACK a message after 5 seconds.
+Establish a chat window to peer 0xf:
+
+```
+$ litany chat 0f
+```
+
+Join the 0xcafebabe group chat:
+
+```
+$ litany group cafebabe
+```
+
+## Limitations
+
+Messages are limited to 512 bytes each.
 
 ## Building
 
 Litany builds on Linux, OpenBSD, MacOS and for Windows.
-You need Qt6 and libkyrka with its dependencies installed.
+
+You need Qt6 and
+<a href="https://github.com/jorisvink/libkyrka">libkyrka</a>to be able
+to build Litany.
 
 ```
 $ qmake qt/litany.pro
