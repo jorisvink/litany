@@ -3,6 +3,9 @@
 This is an end-to-end encrypted and peer-to-peer chat program
 using the sanctum protocol as its transport layer.
 
+For details on how the underlying tunnels works see
+<a href="https://github.com/jorisvink/sanctum/blob/master/docs/crypto.md">docs/crypto.md</a> in the sanctum repository.
+
 ## Features
 
 Litany supports having one-to-one or group conversations. The litany
