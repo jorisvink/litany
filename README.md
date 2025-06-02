@@ -20,7 +20,7 @@ Groups can be joined via the JOIN GROUP button and input field. In groups
 each member has their own tunnel to each other participant in the group.
 
 You can join group conversations or create direct chat windows without
-being visible Litany by starting it directly from the terminal:
+being seen as "online" in Litany by starting it directly from the terminal:
 
 Establish a chat window to peer 0xf:
 
