@@ -77,18 +77,19 @@ Tunnel::Tunnel(TunnelInterface *obj, QJsonObject *config,
 	cfg.udata = this;
 	cfg.send = cathedral_send;
 
-	cfg.flock = litany_json_number(config, "flock", ULLONG_MAX);
-	if (cfg.flock & 0xff)
-		fatal("flock invalid (contains domain bits)");
+	cfg.flock_src = litany_json_number(config, "flock", ULLONG_MAX);
+	if (cfg.flock_src & 0xff)
+		fatal("src flock invalid (contains domain bits)");
 
 	if (group) {
-		cfg.flock |= litany_json_number(config,
+		cfg.flock_src |= litany_json_number(config,
 		    "flock-domain-group", UCHAR_MAX);
 	} else {
-		cfg.flock |= litany_json_number(config,
+		cfg.flock_src |= litany_json_number(config,
 		    "flock-domain", UCHAR_MAX);
 	}
 
+	cfg.flock_dst = cfg.flock_src;
 	cfg.identity = litany_json_number(config, "cs-id", UINT_MAX);
 	cfg.tunnel = litany_json_number(config, "kek-id", UCHAR_MAX) << 8;
 	cfg.tunnel |= peer_id;

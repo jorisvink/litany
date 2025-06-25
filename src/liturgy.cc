@@ -80,8 +80,8 @@ Liturgy::Liturgy(LiturgyInterface *parent, QJsonObject *config,
 	cfg.udata = this;
 	cfg.send = cathedral_send;
 
-	cfg.flock = litany_json_number(config, "flock", ULLONG_MAX);
-	if (cfg.flock & 0xff)
+	cfg.flock_src = litany_json_number(config, "flock", ULLONG_MAX);
+	if (cfg.flock_src & 0xff)
 		fatal("flock invalid (contains domain bits)");
 
 	cfg.tunnel = litany_json_number(config, "kek-id", UCHAR_MAX);
@@ -89,14 +89,16 @@ Liturgy::Liturgy(LiturgyInterface *parent, QJsonObject *config,
 
 	if (group) {
 		cfg.group = group;
-		cfg.flock |= litany_json_number(config,
+		cfg.flock_src |= litany_json_number(config,
 		    "flock-domain-group", UCHAR_MAX);
 	} else {
-		cfg.flock |= litany_json_number(config,
+		cfg.flock_src |= litany_json_number(config,
 		    "flock-domain", UCHAR_MAX);
 		if (mode == LITURGY_MODE_DISCOVERY)
 			cfg.group = USHRT_MAX;
 	}
+
+	cfg.flock_dst = cfg.flock_src;
 
 	path = litany_json_string(config, "cs-path");
 	cfg.secret = path;
