@@ -27,6 +27,8 @@
 
 #include "litany.h"
 
+static int	text_validate(const u_int8_t *, size_t);
+
 static void	kyrka_event(KYRKA *, union kyrka_event *, void *);
 static void	heaven_send(const void *, size_t, u_int64_t, void *);
 static void	purgatory_send(const void *, size_t, u_int64_t, void *);
@@ -493,8 +495,11 @@ heaven_send(const void *data, size_t len, u_int64_t seq, void *udata)
 	PRECOND(seq != 0);
 	PRECOND(udata != NULL);
 
+	tunnel = (Tunnel *)udata;
+
 	if (len != sizeof(*msg)) {
-		printf("malformed packet (%zu, vs %zu)\n", len, sizeof(*msg));
+		tunnel->system_msg("[%02x] malformed packet (%zu vs %zu)",
+		    tunnel->peer_id, len, sizeof(*msg));
 		return;
 	}
 
@@ -503,21 +508,27 @@ heaven_send(const void *data, size_t len, u_int64_t seq, void *udata)
 	msg->id = be64toh(msg->id);
 
 	if (msg->id == LITANY_MESSAGE_SYSTEM_ID) {
-		printf("peer tried sending system message\n");
+		tunnel->system_msg("[%02x] tried sending a system message",
+		    tunnel->peer_id);
 		return;
 	}
 
 	if (msg->len > sizeof(msg->data)) {
-		printf("bad length detected (%u)\n", msg->len);
+		tunnel->system_msg("[%02x] got msg with invalid length (%u)",
+		    tunnel->peer_id, msg->len);
 		return;
 	}
 
-	tunnel = (Tunnel *)udata;
 	tunnel->peer_alive();
 
 	switch (msg->type) {
 	case LITANY_MESSAGE_TYPE_TEXT:
-		/* XXX - validate text. */
+		if (text_validate(msg->data, msg->len) == -1) {
+			tunnel->system_msg("[%02x] malformed utf8 data",
+			    tunnel->peer_id);
+			break;
+		}
+
 		tunnel->recv_msg(Qt::gray, msg->id, "<%02x> %.*s",
 		    tunnel->peer_id, (int)msg->len, (const char *)msg->data);
 		tunnel->send_ack(msg->id);
@@ -574,4 +585,29 @@ cathedral_send(const void *data, size_t len, u_int64_t magic, void *udata)
 
 	tunnel = (Tunnel *)udata;
 	tunnel->socket_send(data, len, 1, is_nat);
+}
+
+/*
+ * Validate the given text data to see if its valid and can be printed.
+ */
+static int
+text_validate(const u_int8_t *text, size_t len)
+{
+	size_t		off, seqlen;
+
+	off = 0;
+
+	while (off < len) {
+		if (litany_utf8_sequence(text, len, off, &seqlen) == 0)
+			return (-1);
+
+		if (off + seqlen > len)
+			return (-1);
+
+		off += seqlen;
+	}
+
+	PRECOND(off == len);
+
+	return (0);
 }

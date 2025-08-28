@@ -88,6 +88,9 @@ void	litany_msg_ack(struct litany_msg_list *, u_int64_t);
 struct litany_msg	*litany_msg_register(struct litany_msg_list *,
 			    const void *, size_t);
 
+/* src/utf8.c */
+int	litany_utf8_sequence(const void *, size_t, size_t, size_t *);
+
 #if defined(__cplusplus)
 }
 #endif

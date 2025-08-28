@@ -36,7 +36,8 @@ SOURCES +=	src/main.cc \
 		src/group.cc \
 		src/peer.cc \
 		src/settings.cc \
-		src/msg.c
+		src/msg.c \
+		src/utf8.c
 
 QMAKE_CXXFLAGS	+=	-g
 
