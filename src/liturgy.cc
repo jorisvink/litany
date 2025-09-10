@@ -191,7 +191,8 @@ Liturgy::packet_read(void)
 		return;
 	}
 
-	if (kyrka_purgatory_input(kyrka, packet, len) == -1)
+	if (kyrka_purgatory_input(kyrka, packet, len) == -1 &&
+	    kyrka_last_error(kyrka) != KYRKA_ERROR_NO_RX_KEY)
 		fatal("kyrka_purgatory_input: %d", kyrka_last_error(kyrka));
 }
 
