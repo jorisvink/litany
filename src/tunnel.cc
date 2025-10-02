@@ -435,6 +435,9 @@ kyrka_event(KYRKA *ctx, union kyrka_event *evt, void *udata)
 	tunnel = (Tunnel *)udata;
 
 	switch (evt->type) {
+	case KYRKA_EVENT_LOGMSG:
+		tunnel->system_msg("[log]: %s", evt->logmsg.log);
+		break;
 	case KYRKA_EVENT_KEYS_INFO:
 		tunnel->peer_alive();
 		tunnel->system_msg("[tunnel]: tx=%08x rx=%08x",
